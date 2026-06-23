@@ -1,0 +1,231 @@
+@{
+    ViewBag.Title = "Biometric Terminal";
+    ViewBag.ActiveMenu = "Attendance";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header-box">
+    <h3><i class="fa fa-fingerprint"></i> Biometric Attendance Terminal</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Attendance</a></li>
+        <li class="active">Biometric Terminal</li>
+    </ol>
+</div>
+
+<div class="row">
+    <!-- Terminal Machine -->
+    <div class="col-md-5">
+        <div style="background:linear-gradient(160deg,#1a252f,#2c3e50);border-radius:16px;padding:30px;box-shadow:0 10px 40px rgba(0,0,0,0.4);color:#fff">
+
+            <!-- Machine Header -->
+            <div style="text-align:center;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:16px">
+                <div style="font-size:13px;color:#7f8fa4;letter-spacing:2px;text-transform:uppercase">Hospital Management System</div>
+                <div style="font-size:22px;font-weight:700;color:#fff;margin:6px 0">
+                    <i class="fa fa-fingerprint" style="color:#2ecc71"></i> Biometric Terminal
+                </div>
+                <!-- Live Clock -->
+                <div id="liveClock" style="font-size:36px;font-weight:700;color:#2ecc71;font-family:monospace;letter-spacing:3px">00:00:00</div>
+                <div id="liveDate" style="font-size:13px;color:#95a5a6;margin-top:4px"></div>
+            </div>
+
+            <!-- Employee Type Toggle -->
+            <div style="display:flex;background:rgba(255,255,255,0.08);border-radius:8px;padding:4px;margin-bottom:16px">
+                <button type="button" id="btnStaff" onclick="setType('Staff')"
+                    style="flex:1;border:none;border-radius:6px;padding:9px;font-weight:600;font-size:13px;cursor:pointer;background:linear-gradient(135deg,#2980b9,#3498db);color:#fff;transition:all 0.3s">
+                    <i class="fa fa-users"></i> Staff
+                </button>
+                <button type="button" id="btnDoctor" onclick="setType('Doctor')"
+                    style="flex:1;border:none;border-radius:6px;padding:9px;font-weight:600;font-size:13px;cursor:pointer;background:transparent;color:#7f8fa4;transition:all 0.3s">
+                    <i class="fa fa-user-md"></i> Doctor
+                </button>
+            </div>
+
+            <!-- ID Input -->
+            <div style="margin-bottom:16px">
+                <label style="font-size:12px;color:#95a5a6;letter-spacing:1px;text-transform:uppercase">Employee ID</label>
+                <input type="number" id="empIdInput" placeholder="Enter ID then press Enter or Punch"
+                    style="width:100%;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);border-radius:8px;padding:14px 16px;color:#fff;font-size:20px;font-weight:700;text-align:center;outline:none;letter-spacing:3px"
+                    onkeypress="if(event.keyCode==13) punch()" autofocus />
+            </div>
+
+            <!-- Punch Button -->
+            <button onclick="punch()" id="punchBtn"
+                style="width:100%;background:linear-gradient(135deg,#27ae60,#2ecc71);border:none;border-radius:10px;padding:16px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 15px rgba(46,204,113,0.4);transition:all 0.2s">
+                <i class="fa fa-hand-pointer-o"></i> PUNCH IN / OUT
+            </button>
+
+            <!-- Status Area -->
+            <div id="statusArea" style="margin-top:16px;border-radius:8px;padding:14px;text-align:center;min-height:60px;display:none"></div>
+
+            <!-- Instructions -->
+            <div style="margin-top:20px;font-size:11px;color:#7f8fa4;text-align:center;line-height:1.8">
+                <i class="fa fa-info-circle"></i>
+                First punch = CHECK IN &nbsp;|&nbsp; Second punch = CHECK OUT<br/>
+                Late after 9:15 AM &nbsp;|&nbsp; Half day if worked less than 4 hours
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Log Panel -->
+    <div class="col-md-7">
+        <!-- Employee Card (appears after punch) -->
+        <div id="empCard" style="display:none;margin-bottom:16px">
+            <div id="empCardInner" class="card-box" style="border-left:5px solid #27ae60">
+                <div style="display:flex;align-items:center;gap:16px">
+                    <div id="empAvatar" style="width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;flex-shrink:0"></div>
+                    <div>
+                        <div id="empName" style="font-size:20px;font-weight:700;color:#2c3e50"></div>
+                        <div id="empDesig" style="font-size:13px;color:#7f8fa4"></div>
+                        <div id="empAction" style="font-size:14px;font-weight:600;margin-top:4px"></div>
+                        <div id="empTime" style="font-size:13px;color:#999"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Log -->
+        <div class="card-box">
+            <div class="card-title">
+                <i class="fa fa-list"></i> Today's Attendance Log
+                <span id="logCount" class="label label-primary pull-right" style="margin-top:2px">0</span>
+            </div>
+            <div id="logList" style="max-height:400px;overflow-y:auto">
+                <div class="text-center text-muted" style="padding:30px">
+                    <i class="fa fa-clock-o" style="font-size:35px;opacity:0.3"></i>
+                    <p style="margin-top:10px">No punches yet today. Waiting...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-box" style="margin-top:0">
+            <a href="@Url.Action("Index")" class="btn btn-default btn-block">
+                <i class="fa fa-arrow-left"></i> Back to Attendance List
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+var empType = 'Staff';
+var logEntries = [];
+
+// Live Clock
+function updateClock() {
+    var now = new Date();
+    var h = String(now.getHours()).padStart(2,'0');
+    var m = String(now.getMinutes()).padStart(2,'0');
+    var s = String(now.getSeconds()).padStart(2,'0');
+    document.getElementById('liveClock').textContent = h + ':' + m + ':' + s;
+    var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    document.getElementById('liveDate').textContent =
+        days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+function setType(t) {
+    empType = t;
+    if (t === 'Staff') {
+        document.getElementById('btnStaff').style.background  = 'linear-gradient(135deg,#2980b9,#3498db)';
+        document.getElementById('btnStaff').style.color       = '#fff';
+        document.getElementById('btnDoctor').style.background = 'transparent';
+        document.getElementById('btnDoctor').style.color      = '#7f8fa4';
+    } else {
+        document.getElementById('btnDoctor').style.background = 'linear-gradient(135deg,#27ae60,#2ecc71)';
+        document.getElementById('btnDoctor').style.color      = '#fff';
+        document.getElementById('btnStaff').style.background  = 'transparent';
+        document.getElementById('btnStaff').style.color       = '#7f8fa4';
+    }
+}
+
+function punch() {
+    var id = document.getElementById('empIdInput').value.trim();
+    if (!id) {
+        showStatus('Please enter Employee ID!', 'error');
+        return;
+    }
+
+    var btn = document.getElementById('punchBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing...';
+
+    $.post('@Url.Action("PunchIn","Attendance")', { employeeId: id, employeeType: empType }, function(res) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa fa-hand-pointer-o"></i> PUNCH IN / OUT';
+
+        if (res.success) {
+            // Show employee card
+            var card     = document.getElementById('empCard');
+            var avatar   = document.getElementById('empAvatar');
+            var nameEl   = document.getElementById('empName');
+            var desigEl  = document.getElementById('empDesig');
+            var actionEl = document.getElementById('empAction');
+            var timeEl   = document.getElementById('empTime');
+            var inner    = document.getElementById('empCardInner');
+
+            var isIn = res.action === 'IN';
+            inner.style.borderLeftColor = isIn ? '#27ae60' : '#e74c3c';
+            avatar.style.background     = isIn ? 'linear-gradient(135deg,#27ae60,#2ecc71)' : 'linear-gradient(135deg,#c0392b,#e74c3c)';
+            avatar.textContent          = res.name.charAt(0).toUpperCase();
+
+            if (res.photo) {
+                avatar.style.backgroundImage = 'url(' + res.photo + ')';
+                avatar.style.backgroundSize  = 'cover';
+                avatar.textContent           = '';
+            }
+
+            nameEl.textContent   = res.name;
+            desigEl.textContent  = res.desig;
+            actionEl.innerHTML   = (isIn ? '<span style="color:#27ae60"><i class="fa fa-sign-in"></i> CHECK IN</span>' : '<span style="color:#e74c3c"><i class="fa fa-sign-out"></i> CHECK OUT</span>');
+            timeEl.textContent   = 'Time: ' + res.time;
+            card.style.display   = 'block';
+
+            // Add to log
+            addLog(res, isIn);
+            showStatus(res.message, 'success');
+            document.getElementById('empIdInput').value = '';
+            document.getElementById('empIdInput').focus();
+
+            // Play beep sound effect (visual)
+            setTimeout(function() { card.style.display = 'none'; }, 5000);
+        } else {
+            showStatus(res.message, 'error');
+        }
+    }).fail(function() {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa fa-hand-pointer-o"></i> PUNCH IN / OUT';
+        showStatus('Server error! Try again.', 'error');
+    });
+}
+
+function showStatus(msg, type) {
+    var area = document.getElementById('statusArea');
+    area.style.display   = 'block';
+    area.style.background = type === 'success' ? 'rgba(46,204,113,0.2)' : 'rgba(231,76,60,0.2)';
+    area.style.border    = '1px solid ' + (type === 'success' ? '#2ecc71' : '#e74c3c');
+    area.style.color     = type === 'success' ? '#2ecc71' : '#e74c3c';
+    area.innerHTML       = '<i class="fa fa-' + (type === 'success' ? 'check-circle' : 'times-circle') + '"></i> ' + msg;
+    setTimeout(function() { area.style.display = 'none'; }, 4000);
+}
+
+function addLog(res, isIn) {
+    logEntries.unshift(res);
+    document.getElementById('logCount').textContent = logEntries.length;
+
+    var list  = document.getElementById('logList');
+    var color = isIn ? '#27ae60' : '#e74c3c';
+    var icon  = isIn ? 'sign-in' : 'sign-out';
+    var item  = '<div style="display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid #eee">'
+        + '<div style="width:38px;height:38px;border-radius:50%;background:' + color + ';display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0"><i class="fa fa-' + icon + '"></i></div>'
+        + '<div style="flex:1"><strong>' + res.name + '</strong><br/><small style="color:#999">' + res.desig + '</small></div>'
+        + '<div style="text-align:right"><span style="color:' + color + ';font-weight:600">' + (isIn ? 'IN' : 'OUT') + '</span><br/><small style="color:#999">' + res.time + '</small></div>'
+        + '</div>';
+
+    if (list.querySelector('.text-center')) list.innerHTML = '';
+    list.innerHTML = item + list.innerHTML;
+}
+</script>
+}

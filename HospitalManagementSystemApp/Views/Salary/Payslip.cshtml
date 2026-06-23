@@ -1,0 +1,127 @@
+@model HospitalMS.Models.Salary
+@{
+    ViewBag.Title = "Payslip";
+    Layout = null;
+    var hospital = ViewBag.Hospital as HospitalMS.Models.Hospital;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Payslip - @Model.EmployeeName - @(new DateTime(Model.Year,Model.Month,1).ToString("MMMM yyyy"))</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/3.4.1/css/bootstrap.min.css" />
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background:#f4f6f9; padding:30px; }
+        .payslip-box { max-width:800px; margin:0 auto; background:#fff; border-radius:10px; box-shadow:0 2px 15px rgba(0,0,0,0.1); overflow:hidden; }
+        .payslip-header { background:linear-gradient(135deg,#1a3c5e,#2980b9); color:#fff; padding:25px 30px; }
+        .payslip-header h2 { margin:0; font-size:24px; }
+        .payslip-header p { margin:2px 0; font-size:13px; opacity:0.9; }
+        .payslip-title { text-align:center; padding:16px; background:#eaf4fb; font-size:18px; font-weight:700; color:#2c3e50; letter-spacing:2px; }
+        .payslip-body { padding:25px 30px; }
+        .info-table td { padding:6px 10px; font-size:13px; border:none; }
+        .info-table td.label { color:#888; width:140px; }
+        .salary-table { width:100%; margin-top:15px; }
+        .salary-table th { background:#1a3c5e; color:#fff; padding:10px; font-size:13px; }
+        .salary-table td { padding:10px; font-size:13px; border-bottom:1px solid #eee; }
+        .total-row { background:#eaf4fb; font-weight:700; font-size:16px; }
+        .net-amount { text-align:center; padding:20px; background:#f0fdf4; border-top:2px solid #27ae60; border-bottom:2px solid #27ae60; margin-top:15px; }
+        .net-amount .label { font-size:13px; color:#666; }
+        .net-amount .amount { font-size:32px; font-weight:700; color:#27ae60; }
+        .status-stamp {
+            display:inline-block; padding:8px 24px; border:3px solid; border-radius:8px;
+            font-weight:700; font-size:16px; letter-spacing:2px; transform:rotate(-8deg); margin-top:10px;
+        }
+        .status-paid { color:#27ae60; border-color:#27ae60; }
+        .status-unpaid { color:#e74c3c; border-color:#e74c3c; }
+        .footer-note { text-align:center; padding:15px; font-size:11px; color:#999; border-top:1px solid #eee; }
+        .print-btn { text-align:center; margin:20px 0; }
+        @@media print { .print-btn { display:none; } body { background:#fff; padding:0; } .payslip-box { box-shadow:none; } }
+    </style>
+</head>
+<body>
+    <div class="print-btn">
+        <button onclick="window.print()" class="btn btn-primary"><i class="fa fa-print"></i> Print Payslip</button>
+        <a href="javascript:history.back()" class="btn btn-default">Back</a>
+    </div>
+
+    <div class="payslip-box">
+        <div class="payslip-header">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+                <div>
+                    <h2><i class="fa fa-hospital-o"></i> @(hospital != null ? hospital.Name : "Hospital Management System")</h2>
+                    <p>@(hospital != null ? hospital.Address : "")</p>
+                    <p>@(hospital != null ? hospital.ContactNo : "") &nbsp; @(hospital != null ? hospital.Email : "")</p>
+                </div>
+                <div style="text-align:right">
+                    @if (Model.IsPaid)
+                    { <span class="status-stamp status-paid">PAID</span> }
+                    else
+                    { <span class="status-stamp status-unpaid">UNPAID</span> }
+                </div>
+            </div>
+        </div>
+
+        <div class="payslip-title">
+            SALARY SLIP — @(new DateTime(Model.Year,Model.Month,1).ToString("MMMM yyyy").ToUpper())
+        </div>
+
+        <div class="payslip-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="info-table">
+                        <tr><td class="label">Employee Name</td><td><strong>@Model.EmployeeName</strong></td></tr>
+                        <tr><td class="label">Employee Type</td><td>@Model.EmployeeType</td></tr>
+                        <tr><td class="label">Designation</td><td>@ViewBag.Designation</td></tr>
+                        <tr><td class="label">Employee ID</td><td>@(Model.EmployeeType=="Staff"?"STF":"DOC")-@Model.EmployeeId.ToString("D3")</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="info-table">
+                        <tr><td class="label">Pay Period</td><td><strong>@(new DateTime(Model.Year,Model.Month,1).ToString("MMMM yyyy"))</strong></td></tr>
+                        <tr><td class="label">Present Days</td><td class="text-success">@Model.PresentDays days</td></tr>
+                        <tr><td class="label">Absent Days</td><td class="text-danger">@Model.AbsentDays days</td></tr>
+                        <tr><td class="label">Payment Date</td><td>@(Model.PaymentDate.HasValue ? Model.PaymentDate.Value.ToString("dd MMM yyyy") : "Pending")</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <table class="salary-table">
+                <thead>
+                    <tr><th style="width:60%">Description</th><th class="text-right">Amount (Rs.)</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Basic Salary</td><td class="text-right">@Model.BasicSalary.ToString("N0")</td></tr>
+                    <tr><td>Allowances</td><td class="text-right text-success">+ @Model.Allowances.ToString("N0")</td></tr>
+                    <tr><td>Bonus</td><td class="text-right text-success">+ @Model.Bonus.ToString("N0")</td></tr>
+                    <tr><td>Overtime</td><td class="text-right text-success">+ @Model.OvertimeAmount.ToString("N0")</td></tr>
+                    <tr><td>Deductions (Absences)</td><td class="text-right text-danger">− @Model.Deductions.ToString("N0")</td></tr>
+                    <tr class="total-row"><td>NET PAYABLE</td><td class="text-right">Rs. @Model.NetSalary.ToString("N0")</td></tr>
+                </tbody>
+            </table>
+
+            <div class="net-amount">
+                <div class="label">NET SALARY</div>
+                <div class="amount">Rs. @Model.NetSalary.ToString("N0")</div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Remarks))
+            {
+                <div style="margin-top:15px;font-size:13px"><strong>Remarks:</strong> @Model.Remarks</div>
+            }
+
+            <div class="row" style="margin-top:50px">
+                <div class="col-md-6 text-center">
+                    <div style="border-top:1px solid #999;padding-top:6px;font-size:12px;color:#666">Employee Signature</div>
+                </div>
+                <div class="col-md-6 text-center">
+                    <div style="border-top:1px solid #999;padding-top:6px;font-size:12px;color:#666">Authorized Signature</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            This is a computer-generated payslip and does not require a signature. Generated on @DateTime.Now.ToString("dd MMM yyyy, hh:mm tt")
+        </div>
+    </div>
+</body>
+</html>

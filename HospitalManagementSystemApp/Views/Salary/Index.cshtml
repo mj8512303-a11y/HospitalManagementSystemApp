@@ -1,0 +1,188 @@
+@model IEnumerable<HospitalMS.Models.Salary>
+@{
+    ViewBag.Title = "Salary / Payroll Management";
+    ViewBag.ActiveMenu = "Salary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-money"></i> Salary / Payroll Management — <span style="color:#2980b9">@ViewBag.MonthName</span></h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li class="active">Salary / Payroll</li>
+    </ol>
+</div>
+
+<!-- Quick Action -->
+<div class="row" style="margin-bottom:15px">
+    <div class="col-md-12">
+        <a href="@Url.Action("Generate")" class="btn btn-primary btn-lg">
+            <i class="fa fa-magic"></i> Generate Monthly Salaries
+        </a>
+        @if (ViewBag.TotalUnpaid > 0)
+        {
+            <a href="@Url.Action("PayAll",new{month=ViewBag.Month,year=ViewBag.Year})" class="btn btn-success btn-lg"
+               onclick="return confirm('Mark ALL unpaid salaries as PAID for @ViewBag.MonthName ?')">
+                <i class="fa fa-credit-card"></i> Pay All Unpaid (@ViewBag.TotalUnpaid)
+            </a>
+        }
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row">
+    <div class="col-md-2">
+        <div class="stat-card stat-blue">
+            <div><div class="stat-number">@ViewBag.TotalRecords</div><div class="stat-label">Total Records</div></div>
+            <i class="fa fa-list stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-green">
+            <div><div class="stat-number">@ViewBag.TotalPaid</div><div class="stat-label">Paid</div></div>
+            <i class="fa fa-check-circle stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-red">
+            <div><div class="stat-number">@ViewBag.TotalUnpaid</div><div class="stat-label">Unpaid</div></div>
+            <i class="fa fa-clock-o stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-purple">
+            <div style="font-size:18px;font-weight:700">Rs. @(((decimal)ViewBag.TotalAmount).ToString("N0"))</div>
+            <div class="stat-label">Total Payroll</div>
+            <i class="fa fa-money stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-teal">
+            <div style="font-size:18px;font-weight:700">Rs. @(((decimal)ViewBag.PaidAmount).ToString("N0"))</div>
+            <div class="stat-label">Paid Amount</div>
+            <i class="fa fa-check stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-orange">
+            <div style="font-size:18px;font-weight:700">Rs. @(((decimal)ViewBag.UnpaidAmount).ToString("N0"))</div>
+            <div class="stat-label">Pending Amount</div>
+            <i class="fa fa-exclamation-circle stat-icon"></i>
+        </div>
+    </div>
+</div>
+
+<div class="card-box">
+    <div class="card-title"><i class="fa fa-list"></i> Salary Records</div>
+
+    @using (Html.BeginForm("Index","Salary",FormMethod.Get)) {
+        <div class="row" style="margin-bottom:15px">
+            <div class="col-md-2">
+                <label class="control-label" style="font-size:12px">Month</label>
+                <select name="month" class="form-control">
+                    @for (int i=1;i<=12;i++){
+                        <option value="@i" @(ViewBag.Month==i?"selected":"")>@(new DateTime(2024,i,1).ToString("MMMM"))</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="control-label" style="font-size:12px">Year</label>
+                <select name="year" class="form-control">
+                    @for (int y=2023;y<=DateTime.Now.Year+1;y++){
+                        <option value="@y" @(ViewBag.Year==y?"selected":"")>@y</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="control-label" style="font-size:12px">Employee Type</label>
+                <select name="empType" class="form-control">
+                    <option value="">-- All --</option>
+                    <option value="Staff"  @(ViewBag.EmpType=="Staff"?"selected":"")>Staff</option>
+                    <option value="Doctor" @(ViewBag.EmpType=="Doctor"?"selected":"")>Doctor</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="control-label" style="font-size:12px">Payment Status</label>
+                <select name="status" class="form-control">
+                    <option value="">-- All --</option>
+                    <option value="Paid"   @(ViewBag.StatusVal=="Paid"?"selected":"")>Paid</option>
+                    <option value="Unpaid" @(ViewBag.StatusVal=="Unpaid"?"selected":"")>Unpaid</option>
+                </select>
+            </div>
+            <div class="col-md-2" style="margin-top:20px">
+                <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Filter</button>
+            </div>
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>#</th><th>Employee</th><th>Type</th>
+                    <th>Basic</th><th>Allowances</th><th>Bonus</th>
+                    <th>Overtime</th><th>Deductions</th><th>Net Salary</th>
+                    <th>Attendance</th><th>Status</th>
+                    <th style="width:170px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int sr=1; }
+                @foreach (var s in Model)
+                {
+                    <tr>
+                        <td>@(sr++)</td>
+                        <td><strong>@s.EmployeeName</strong></td>
+                        <td>@if(s.EmployeeType=="Staff"){<span class="label label-primary">Staff</span>}else{<span class="label label-success">Doctor</span>}</td>
+                        <td>Rs. @s.BasicSalary.ToString("N0")</td>
+                        <td class="text-success">+@s.Allowances.ToString("N0")</td>
+                        <td class="text-success">+@s.Bonus.ToString("N0")</td>
+                        <td class="text-success">+@s.OvertimeAmount.ToString("N0")</td>
+                        <td class="text-danger">-@s.Deductions.ToString("N0")</td>
+                        <td><strong style="color:#2980b9;font-size:14px">Rs. @s.NetSalary.ToString("N0")</strong></td>
+                        <td>
+                            <small>
+                                <span class="text-success">P:@s.PresentDays</span> /
+                                <span class="text-danger">A:@s.AbsentDays</span>
+                            </small>
+                        </td>
+                        <td>
+                            @if (s.IsPaid)
+                            { <span class="badge-active">Paid</span> }
+                            else
+                            { <span class="badge-pending">Unpaid</span> }
+                        </td>
+                        <td>
+                            <a href="@Url.Action("Details",new{id=s.Id})" class="btn btn-info btn-sm" title="Details"><i class="fa fa-eye"></i></a>
+                            <a href="@Url.Action("Edit",new{id=s.Id})" class="btn btn-warning btn-sm" title="Edit"><i class="fa fa-pencil"></i></a>
+                            <a href="@Url.Action("Payslip",new{id=s.Id})" class="btn btn-primary btn-sm" title="Payslip" target="_blank"><i class="fa fa-file-text-o"></i></a>
+                            @if (s.IsPaid)
+                            {
+                                <a href="@Url.Action("MarkUnpaid",new{id=s.Id})" class="btn btn-default btn-sm" title="Mark Unpaid"><i class="fa fa-undo"></i></a>
+                            }
+                            else
+                            {
+                                <a href="@Url.Action("MarkPaid",new{id=s.Id})" class="btn btn-success btn-sm" title="Mark Paid"><i class="fa fa-check"></i></a>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {<tr><td colspan="12" class="text-center text-muted" style="padding:45px">
+                    <i class="fa fa-money" style="font-size:50px;opacity:0.2"></i>
+                    <p style="margin-top:12px">No salary records for @ViewBag.MonthName</p>
+                    <a href="@Url.Action("Generate")" class="btn btn-primary"><i class="fa fa-magic"></i> Generate Salaries</a>
+                </td></tr>}
+            </tbody>
+            @if (Model.Any())
+            {
+                <tfoot>
+                    <tr style="background:#f8f9fa;font-weight:700">
+                        <td colspan="8" class="text-right">TOTAL:</td>
+                        <td style="color:#2980b9">Rs. @Model.Sum(x=>x.NetSalary).ToString("N0")</td>
+                        <td colspan="3"></td>
+                    </tr>
+                </tfoot>
+            }
+        </table>
+    </div>
+</div>

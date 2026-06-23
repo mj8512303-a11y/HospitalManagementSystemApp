@@ -1,0 +1,214 @@
+@model HospitalMS.Models.Patient
+@{
+    ViewBag.Title = "Patient Details";
+    ViewBag.ActiveMenu = "Patient";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    decimal pending = ViewBag.PendingAmount;
+}
+
+<div class="page-header-box">
+    <h3><i class="fa fa-eye"></i> Patient Details</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Patients</a></li>
+        <li class="active">P-@Model.Id.ToString("D4")</li>
+    </ol>
+</div>
+
+<div class="row">
+    <!-- Profile Card -->
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            <!-- Avatar -->
+            <div style="width:110px;height:110px;border-radius:50%;background:@(Model.Gender=="Female"?"linear-gradient(135deg,#e91e8c,#f48fb1)":"linear-gradient(135deg,#1a3c5e,#2980b9)");display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:42px;font-weight:700;margin-bottom:12px">
+                @Model.FullName[0].ToString().ToUpper()
+            </div>
+
+            <h4 style="color:#2c3e50;font-weight:700;margin-bottom:2px">@Model.FullName</h4>
+            <p style="margin-bottom:4px">
+                <span style="background:#eaf4fb;color:#2980b9;padding:3px 10px;border-radius:10px;font-weight:700;font-size:13px">
+                    P-@Model.Id.ToString("D4")
+                </span>
+            </p>
+            <p style="font-size:13px;color:#666;margin-bottom:6px">
+                @Model.Age yrs &nbsp;|&nbsp; @Model.Gender
+            </p>
+            @if (!string.IsNullOrEmpty(Model.BloodGroup))
+            {
+                <span style="background:#e74c3c;color:#fff;padding:4px 12px;border-radius:10px;font-weight:700;font-size:13px">
+                    @Model.BloodGroup
+                </span>
+            }
+            <br style="margin:6px 0" />
+            @if (Model.PatientType == "OPD")
+            { <span class="label label-success" style="font-size:12px;padding:4px 10px">OPD</span> }
+            else
+            { <span class="label label-warning" style="font-size:12px;padding:4px 10px">IPD</span> }
+
+            <hr />
+
+            <!-- Appointment mini stats -->
+            <div class="row text-center">
+                <div class="col-xs-6" style="border-right:1px solid #eee;padding:10px">
+                    <div style="font-size:22px;font-weight:700;color:#2980b9">@ViewBag.TotalAppointments</div>
+                    <div style="font-size:11px;color:#888">Appointments</div>
+                </div>
+                <div class="col-xs-6" style="padding:10px">
+                    <div style="font-size:22px;font-weight:700;color:#27ae60">@ViewBag.TotalBills</div>
+                    <div style="font-size:11px;color:#888">Bills</div>
+                </div>
+            </div>
+
+            <hr />
+
+            <!-- Quick Actions -->
+            <a href="@Url.Action("Edit",new{id=Model.Id})" class="btn btn-warning btn-sm btn-block">
+                <i class="fa fa-pencil"></i> Edit Patient
+            </a>
+            <a href="@Url.Action("Create","Appointment",new{patientId=Model.Id})"
+               class="btn btn-success btn-sm btn-block" style="margin-top:5px">
+                <i class="fa fa-calendar-plus-o"></i> Book Appointment
+            </a>
+            <a href="@Url.Action("Create","Billing",new{patientId=Model.Id})"
+               class="btn btn-info btn-sm btn-block" style="margin-top:5px">
+                <i class="fa fa-file-text-o"></i> Create Bill
+            </a>
+            <a href="@Url.Action("Index")" class="btn btn-default btn-sm btn-block" style="margin-top:5px">
+                <i class="fa fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Info Column -->
+    <div class="col-md-9">
+
+        <!-- Personal Info -->
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-user"></i> Personal Information</div>
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-bordered">
+                        <tr><th style="background:#f8f9fa;width:40%">Full Name</th><td><strong>@Model.FullName</strong></td></tr>
+                        <tr><th style="background:#f8f9fa">Age</th><td>@Model.Age years</td></tr>
+                        <tr><th style="background:#f8f9fa">Gender</th><td>@Model.Gender</td></tr>
+                        <tr><th style="background:#f8f9fa">Blood Group</th>
+                            <td>@if (!string.IsNullOrEmpty(Model.BloodGroup))
+                                { <span style="background:#e74c3c;color:#fff;padding:2px 8px;border-radius:8px;font-weight:700">@Model.BloodGroup</span> }
+                                else { <span class="text-muted">Not specified</span> }
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-bordered">
+                        <tr><th style="background:#f8f9fa;width:40%">Phone</th><td><i class="fa fa-phone text-success"></i> @Model.Phone</td></tr>
+                        <tr><th style="background:#f8f9fa">Email</th><td>@(string.IsNullOrEmpty(Model.Email)?"N/A":Model.Email)</td></tr>
+                        <tr><th style="background:#f8f9fa">Emergency</th><td><i class="fa fa-ambulance text-danger"></i> @(string.IsNullOrEmpty(Model.EmergencyContact)?"N/A":Model.EmergencyContact)</td></tr>
+                        <tr><th style="background:#f8f9fa">Address</th><td>@(string.IsNullOrEmpty(Model.Address)?"N/A":Model.Address)</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registration & Medical -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card-box">
+                    <div class="card-title"><i class="fa fa-hospital-o"></i> Registration Info</div>
+                    <table class="table table-bordered">
+                        <tr><th style="background:#f8f9fa">Branch</th><td>@Model.Branch?.Name</td></tr>
+                        <tr><th style="background:#f8f9fa">Type</th>
+                            <td>@if(Model.PatientType=="OPD"){<span class="label label-success">OPD</span>}
+                                else{<span class="label label-warning">IPD</span>}</td>
+                        </tr>
+                        <tr><th style="background:#f8f9fa">Reg. Date</th><td>@Model.RegistrationDate.ToString("dd MMM yyyy")</td></tr>
+                        @if (Model.PatientType == "IPD")
+                        {
+                            <tr><th style="background:#f8f9fa">Admission</th><td>@(Model.AdmissionDate.HasValue ? Model.AdmissionDate.Value.ToString("dd MMM yyyy") : "N/A")</td></tr>
+                            <tr><th style="background:#f8f9fa">Discharge</th><td>@(Model.DischargeDate.HasValue ? Model.DischargeDate.Value.ToString("dd MMM yyyy") : "Not discharged")</td></tr>
+                        }
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-box">
+                    <div class="card-title"><i class="fa fa-heartbeat"></i> Medical History</div>
+                    <div style="min-height:80px;font-size:13px;color:#555;line-height:1.7">
+                        @if (!string.IsNullOrEmpty(Model.MedicalHistory))
+                        { @Model.MedicalHistory }
+                        else
+                        { <span class="text-muted"><i class="fa fa-info-circle"></i> No medical history recorded.</span> }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Billing Summary -->
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-money"></i> Billing Summary</div>
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <div style="background:#eaf4fb;border-radius:8px;padding:16px">
+                        <div style="font-size:24px;font-weight:700;color:#2980b9">
+                            Rs. @((decimal)ViewBag.TotalBillAmount).ToString("N0"))
+                        </div>
+                        <div style="font-size:12px;color:#666">Total Billed</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div style="background:#d4edda;border-radius:8px;padding:16px">
+                        <div style="font-size:24px;font-weight:700;color:#155724">
+                            Rs. @((decimal)ViewBag.PaidAmount).ToString("N0"))
+                        </div>
+                        <div style="font-size:12px;color:#666">Paid</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div style="background:@(pending > 0 ? "#fde8e8" : "#f8f9fa");border-radius:8px;padding:16px">
+                        <div style="font-size:24px;font-weight:700;color:@(pending > 0 ? "#c0392b" : "#555")">
+                            Rs. @pending.ToString("N0")
+                        </div>
+                        <div style="font-size:12px;color:#666">Pending</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Appointments -->
+        @if (ViewBag.RecentAppointments != null)
+        {
+            var apts = ViewBag.RecentAppointments as IEnumerable<HospitalMS.Models.Appointment>;
+            if (apts != null && apts.Any())
+            {
+                <div class="card-box">
+                    <div class="card-title">
+                        <i class="fa fa-calendar"></i> Recent Appointments
+                        <a href="@Url.Action("Index","Appointment",new{patientId=Model.Id})" class="btn btn-default btn-xs pull-right">View All</a>
+                    </div>
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr><th>Date</th><th>Doctor</th><th>Time Slot</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var a in apts)
+                            {
+                                <tr>
+                                    <td>@a.AppointmentDate.ToString("dd MMM yyyy")</td>
+                                    <td>Dr. @a.Doctor?.FullName</td>
+                                    <td>@a.TimeSlot</td>
+                                    <td>
+                                        @if (a.Status=="Completed"){<span class="badge-active">Completed</span>}
+                                        else if (a.Status=="Pending"){<span class="badge-pending">Pending</span>}
+                                        else if (a.Status=="Approved"){<span class="label label-info">Approved</span>}
+                                        else{<span class="badge-inactive">@a.Status</span>}
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+
+    </div>
+</div>

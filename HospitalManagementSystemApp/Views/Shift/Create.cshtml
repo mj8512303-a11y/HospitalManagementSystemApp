@@ -1,0 +1,93 @@
+@model HospitalMS.Models.Shift
+@{
+    ViewBag.Title = "Add Shift";
+    ViewBag.ActiveMenu = "Shift";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-plus-circle"></i> Add New Shift</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Shift</a></li>
+        <li class="active">Add</li>
+    </ol>
+</div>
+<div class="row">
+    <div class="col-md-7">
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-clock-o"></i> Shift Information</div>
+            @using (Html.BeginForm("Create","Shift",FormMethod.Post)) {
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.Name,new{@class="control-label"}) <span class="text-danger">*</span>
+                    @Html.TextBoxFor(m=>m.Name,new{@class="form-control",placeholder="e.g. Morning Shift, Evening Shift, Night Shift"})
+                    @Html.ValidationMessageFor(m=>m.Name,"",new{@class="text-danger"})
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @Html.LabelFor(m=>m.StartTime,new{@class="control-label"}) <span class="text-danger">*</span>
+                            @Html.TextBoxFor(m=>m.StartTime,new{@class="form-control",type="time"})
+                            @Html.ValidationMessageFor(m=>m.StartTime,"",new{@class="text-danger"})
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @Html.LabelFor(m=>m.EndTime,new{@class="control-label"}) <span class="text-danger">*</span>
+                            @Html.TextBoxFor(m=>m.EndTime,new{@class="form-control",type="time"})
+                            @Html.ValidationMessageFor(m=>m.EndTime,"",new{@class="text-danger"})
+                        </div>
+                    </div>
+                </div>
+                <div id="durationDisplay" class="alert alert-info" style="display:none;font-size:13px">
+                    <i class="fa fa-hourglass-half"></i> <strong>Duration:</strong> <span id="durText"></span>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.Description,new{@class="control-label"})
+                    @Html.TextAreaFor(m=>m.Description,3,0,new{@class="form-control",placeholder="Description (optional)"})
+                </div>
+                <div class="form-group">
+                    <div class="checkbox"><label>@Html.CheckBoxFor(m=>m.IsActive) <strong>Is Active</strong></label></div>
+                </div>
+                <hr />
+                <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save Shift</button>
+                <a href="@Url.Action("Index")" class="btn btn-default"><i class="fa fa-arrow-left"></i> Back</a>
+            }
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-lightbulb-o"></i> Common Shifts</div>
+            <table class="table table-bordered" style="font-size:13px">
+                <thead><tr><th>Shift</th><th>Time</th></tr></thead>
+                <tbody>
+                    <tr><td>Morning</td><td>08:00 - 14:00</td></tr>
+                    <tr><td>Afternoon</td><td>14:00 - 20:00</td></tr>
+                    <tr><td>Evening</td><td>16:00 - 22:00</td></tr>
+                    <tr><td>Night</td><td>22:00 - 08:00</td></tr>
+                    <tr><td>Full Day</td><td>09:00 - 17:00</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@section Scripts {
+<script>
+    function calcDuration() {
+        var s = document.getElementById("StartTime").value;
+        var e = document.getElementById("EndTime").value;
+        if (s && e) {
+            var start = new Date("1970-01-01T" + s);
+            var end   = new Date("1970-01-01T" + e);
+            if (end > start) {
+                var diff = (end - start) / 60000;
+                var h = Math.floor(diff / 60), m = diff % 60;
+                document.getElementById("durText").innerText = h + " hours " + m + " minutes";
+                document.getElementById("durationDisplay").style.display = "block";
+            }
+        }
+    }
+    document.getElementById("StartTime").addEventListener("change", calcDuration);
+    document.getElementById("EndTime").addEventListener("change", calcDuration);
+</script>
+}

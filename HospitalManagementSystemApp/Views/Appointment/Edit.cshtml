@@ -1,0 +1,94 @@
+@model HospitalMS.Models.Appointment
+@{
+    ViewBag.Title = "Edit Appointment";
+    ViewBag.ActiveMenu = "Appointment";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-pencil"></i> Edit Appointment — <span style="color:#2980b9">APT-@Model.Id.ToString("D4")</span></h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Appointments</a></li>
+        <li class="active">Edit</li>
+    </ol>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger alert-dismissible">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <i class="fa fa-exclamation-circle"></i> <strong>Fix errors:</strong>
+        <ul style="margin:5px 0 0 18px">
+            @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            { <li>@e.ErrorMessage</li> }
+        </ul>
+    </div>
+}
+
+@using (Html.BeginForm("Edit","Appointment",FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m=>m.Id)
+    @Html.HiddenFor(m=>m.CreatedAt)
+    @Html.HiddenFor(m=>m.BookedBy)
+
+    <div class="card-box">
+        <div class="card-title"><i class="fa fa-calendar"></i> Update Appointment Details</div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label">Patient <span class="text-danger">*</span></label>
+                    @Html.DropDownList("PatientId",(SelectList)ViewBag.PatientId,"-- Select Patient --",new{@class="form-control"})
+                    @Html.ValidationMessageFor(m=>m.PatientId,"",new{@class="text-danger small"})
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label">Branch</label>
+                    @Html.DropDownList("BranchId",(SelectList)ViewBag.BranchId,"-- Select Branch --",new{@class="form-control"})
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label">Doctor <span class="text-danger">*</span></label>
+                    @Html.DropDownList("DoctorId",(SelectList)ViewBag.DoctorId,"-- Select Doctor --",new{@class="form-control",id="doctorSelect"})
+                    @Html.ValidationMessageFor(m=>m.DoctorId,"",new{@class="text-danger small"})
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label">Appointment Date <span class="text-danger">*</span></label>
+                    @Html.TextBoxFor(m=>m.AppointmentDate,"{0:yyyy-MM-dd}",new{@class="form-control",type="date",id="aptDate"})
+                    @Html.ValidationMessageFor(m=>m.AppointmentDate,"",new{@class="text-danger small"})
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="control-label">Time Slot <span class="text-danger">*</span></label>
+                    @Html.DropDownList("TimeSlot",(SelectList)ViewBag.TimeSlots,"-- Select Time --",new{@class="form-control",id="timeSlot"})
+                    @Html.ValidationMessageFor(m=>m.TimeSlot,"",new{@class="text-danger small"})
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="control-label">Status</label>
+                    @Html.DropDownListFor(m=>m.Status,
+                        new SelectList(new[]{"Pending","Approved","Completed","Cancelled"},Model.Status),
+                        new{@class="form-control"})
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label">Notes</label>
+            @Html.TextAreaFor(m=>m.Notes,3,0,new{@class="form-control",placeholder="Notes / symptoms..."})
+        </div>
+    </div>
+    <div class="card-box">
+        <button type="submit" class="btn btn-primary btn-lg"><i class="fa fa-save"></i> Update Appointment</button>
+        <a href="@Url.Action("Index")" class="btn btn-default btn-lg"><i class="fa fa-arrow-left"></i> Back</a>
+    </div>
+}

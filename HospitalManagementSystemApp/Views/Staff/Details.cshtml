@@ -1,0 +1,97 @@
+@model HospitalMS.Models.Staff
+@{
+    ViewBag.Title = "Staff Details";
+    ViewBag.ActiveMenu = "Staff";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-eye"></i> Staff Details</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Staff</a></li>
+        <li class="active">Details</li>
+    </ol>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card-box text-center">
+            @if (!string.IsNullOrEmpty(Model.PhotoPath))
+            {
+                <img src="@Model.PhotoPath" style="width:110px;height:110px;border-radius:50%;object-fit:cover;border:4px solid #2980b9;margin-bottom:12px" />
+            }
+            else
+            {
+                <div style="width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#1a3c5e,#2980b9);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:42px;font-weight:700;margin-bottom:12px">
+                    @Model.FullName[0].ToString().ToUpper()
+                </div>
+            }
+            <h4 style="color:#2c3e50;font-weight:700;margin-bottom:2px">@Model.FullName</h4>
+            <p style="color:#7f8fa4;font-size:13px;margin-bottom:4px">@Model.Designation?.Name</p>
+            <p style="color:#aaa;font-size:12px"><i class="fa fa-code-fork"></i> @Model.Branch?.Name</p>
+
+            @if (Model.Status=="Active")      { <span class="badge-active">Active</span> }
+            else if (Model.Status=="OnLeave") { <span class="badge-pending">On Leave</span> }
+            else                               { <span class="badge-inactive">Terminated</span> }
+
+            <hr />
+            <p style="font-size:12px;color:#888"><i class="fa fa-calendar"></i> Joined: @Model.JoinDate.ToString("dd MMM yyyy")</p>
+
+            <a href="@Url.Action("Edit",new{id=Model.Id})" class="btn btn-warning btn-sm btn-block"><i class="fa fa-pencil"></i> Edit</a>
+            @if (!string.IsNullOrEmpty(Model.DocumentPath))
+            {
+                <a href="@Model.DocumentPath" target="_blank" class="btn btn-info btn-sm btn-block" style="margin-top:5px"><i class="fa fa-file"></i> View Document</a>
+            }
+            <a href="@Url.Action("Index")" class="btn btn-default btn-sm btn-block" style="margin-top:5px"><i class="fa fa-arrow-left"></i> Back</a>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-user"></i> Personal Information</div>
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-bordered">
+                        <tr><th style="background:#f8f9fa;width:40%">Full Name</th><td><strong>@Model.FullName</strong></td></tr>
+                        <tr><th style="background:#f8f9fa">CNIC</th><td>@Model.CNIC</td></tr>
+                        <tr><th style="background:#f8f9fa">Gender</th><td>@Model.Gender</td></tr>
+                        <tr><th style="background:#f8f9fa">Date of Birth</th><td>@(Model.DateOfBirth.HasValue ? Model.DateOfBirth.Value.ToString("dd MMM yyyy") : "N/A")</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-bordered">
+                        <tr><th style="background:#f8f9fa;width:40%">Phone</th><td><i class="fa fa-phone text-success"></i> @Model.Phone</td></tr>
+                        <tr><th style="background:#f8f9fa">Email</th><td><i class="fa fa-envelope text-primary"></i> @Model.Email</td></tr>
+                        <tr><th style="background:#f8f9fa">Address</th><td>@(string.IsNullOrEmpty(Model.Address)?"N/A":Model.Address)</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-briefcase"></i> Job Information</div>
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-bordered">
+                        <tr><th style="background:#f8f9fa;width:40%">Branch</th><td>@Model.Branch?.Name</td></tr>
+                        <tr><th style="background:#f8f9fa">Department</th><td>@Model.Department?.Name</td></tr>
+                        <tr><th style="background:#f8f9fa">Designation</th><td><span class="label label-primary">@Model.Designation?.Name</span></td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-bordered">
+                        <tr><th style="background:#f8f9fa;width:40%">Shift</th><td><i class="fa fa-clock-o text-warning"></i> @Model.Shift?.Name</td></tr>
+                        <tr><th style="background:#f8f9fa">Join Date</th><td>@Model.JoinDate.ToString("dd MMM yyyy")</td></tr>
+                        <tr><th style="background:#f8f9fa">Status</th>
+                            <td>
+                                @if(Model.Status=="Active"){<span class="badge-active">Active</span>}
+                                else if(Model.Status=="OnLeave"){<span class="badge-pending">On Leave</span>}
+                                else{<span class="badge-inactive">Terminated</span>}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

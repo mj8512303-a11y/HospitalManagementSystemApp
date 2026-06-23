@@ -1,0 +1,80 @@
+@model HospitalMS.Models.Appointment
+@{
+    ViewBag.Title = "Appointment Details";
+    ViewBag.ActiveMenu = "Appointment";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string statusColor = Model.Status=="Completed"?"#27ae60":Model.Status=="Approved"?"#2980b9":Model.Status=="Pending"?"#f39c12":"#e74c3c";
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-eye"></i> Appointment Details</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Appointments</a></li>
+        <li class="active">APT-@Model.Id.ToString("D4")</li>
+    </ol>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card-box text-center">
+            <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#1a3c5e,#2980b9);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:30px;margin-bottom:12px">
+                <i class="fa fa-calendar"></i>
+            </div>
+            <h4 style="color:#2c3e50;font-weight:700">APT-@Model.Id.ToString("D4")</h4>
+            <p style="font-size:22px;color:@statusColor;font-weight:700;margin:6px 0">@Model.Status</p>
+            <p style="font-size:14px;color:#666">@Model.AppointmentDate.ToString("dddd, dd MMM yyyy")</p>
+            <p style="font-size:16px;font-weight:600;color:#2980b9"><i class="fa fa-clock-o"></i> @Model.TimeSlot</p>
+            <hr />
+
+            @if (Model.Status == "Pending")
+            {
+                <a href="@Url.Action("UpdateStatus",new{id=Model.Id,status="Approved"})" class="btn btn-success btn-sm btn-block"><i class="fa fa-check"></i> Approve</a>
+            }
+            @if (Model.Status == "Approved")
+            {
+                <a href="@Url.Action("UpdateStatus",new{id=Model.Id,status="Completed"})" class="btn btn-primary btn-sm btn-block" style="margin-top:4px"><i class="fa fa-check-circle"></i> Mark Completed</a>
+            }
+            @if (Model.Status != "Completed" && Model.Status != "Cancelled")
+            {
+                <a href="@Url.Action("UpdateStatus",new{id=Model.Id,status="Cancelled"})" class="btn btn-danger btn-sm btn-block" style="margin-top:4px" onclick="return confirm('Cancel this appointment?')"><i class="fa fa-ban"></i> Cancel</a>
+            }
+            <a href="@Url.Action("Edit",new{id=Model.Id})" class="btn btn-warning btn-sm btn-block" style="margin-top:4px"><i class="fa fa-pencil"></i> Edit</a>
+            <a href="@Url.Action("Index")" class="btn btn-default btn-sm btn-block" style="margin-top:4px"><i class="fa fa-arrow-left"></i> Back</a>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-wheelchair"></i> Patient Information</div>
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-bordered">
+                        <tr><th style="background:#f8f9fa;width:40%">Patient Name</th><td><strong>@(Model.Patient != null ? Model.Patient.FullName : "N/A")</strong></td></tr>
+                        <tr><th style="background:#f8f9fa">Patient ID</th><td><span style="background:#eaf4fb;color:#2980b9;padding:2px 8px;border-radius:8px;font-weight:700">P-@(Model.Patient != null ? Model.Patient.Id.ToString("D4") : "N/A")</span></td></tr>
+                        <tr><th style="background:#f8f9fa">Phone</th><td>@(Model.Patient != null ? Model.Patient.Phone : "N/A")</td></tr>
+                        <tr><th style="background:#f8f9fa">Blood Group</th><td>@(Model.Patient != null && !string.IsNullOrEmpty(Model.Patient.BloodGroup) ? Model.Patient.BloodGroup : "N/A")</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-bordered">
+                        <tr><th style="background:#f8f9fa;width:40%">Doctor</th><td><strong>Dr. @(Model.Doctor != null ? Model.Doctor.FullName : "N/A")</strong></td></tr>
+                        <tr><th style="background:#f8f9fa">Specialization</th><td>@(Model.Doctor != null ? Model.Doctor.Specialization : "N/A")</td></tr>
+                        <tr><th style="background:#f8f9fa">Branch</th><td>@(Model.Branch != null ? Model.Branch.Name : "N/A")</td></tr>
+                        <tr><th style="background:#f8f9fa">Consultation Fee</th><td><strong style="color:#27ae60">Rs. @(Model.Doctor != null ? Model.Doctor.ConsultationFee.ToString("N0") : "0")</strong></td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-calendar"></i> Appointment Details</div>
+            <table class="table table-bordered">
+                <tr><th style="background:#f8f9fa;width:30%">Appointment ID</th><td><span style="background:#eaf4fb;color:#2980b9;padding:3px 10px;border-radius:10px;font-weight:700">APT-@Model.Id.ToString("D4")</span></td></tr>
+                <tr><th style="background:#f8f9fa">Date</th><td><strong>@Model.AppointmentDate.ToString("dddd, dd MMMM yyyy")</strong></td></tr>
+                <tr><th style="background:#f8f9fa">Time Slot</th><td><i class="fa fa-clock-o text-info"></i> <strong>@Model.TimeSlot</strong></td></tr>
+                <tr><th style="background:#f8f9fa">Status</th><td><strong style="color:@statusColor;font-size:14px">@Model.Status</strong></td></tr>
+                <tr><th style="background:#f8f9fa">Booked By</th><td>@Model.BookedBy</td></tr>
+                <tr><th style="background:#f8f9fa">Notes</th><td>@(string.IsNullOrEmpty(Model.Notes) ? "No notes" : Model.Notes)</td></tr>
+            </table>
+        </div>
+    </div>
+</div>

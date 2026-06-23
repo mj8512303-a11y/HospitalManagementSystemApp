@@ -1,0 +1,132 @@
+﻿@model IEnumerable<HospitalMS.Models.Department>
+@{
+    ViewBag.Title = "Department Management";
+    ViewBag.ActiveMenu = "Department";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header-box">
+    <h3><i class="fa fa-sitemap"></i> Department Management</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li class="active">Department</li>
+    </ol>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="stat-card stat-blue">
+            <div><div class="stat-number">@ViewBag.TotalDepts</div><div class="stat-label">Total Departments</div></div>
+            <i class="fa fa-sitemap stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card stat-green">
+            <div><div class="stat-number">@ViewBag.ActiveDepts</div><div class="stat-label">Active</div></div>
+            <i class="fa fa-check-circle stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card stat-red">
+            <div><div class="stat-number">@ViewBag.InactiveDepts</div><div class="stat-label">Inactive</div></div>
+            <i class="fa fa-times-circle stat-icon"></i>
+        </div>
+    </div>
+</div>
+
+<div class="card-box">
+    <div class="card-title">
+        <i class="fa fa-list"></i> All Departments
+        <a href="@Url.Action("Create")" class="btn btn-primary btn-sm pull-right">
+            <i class="fa fa-plus"></i> Add Department
+        </a>
+    </div>
+    <div class="row" style="margin-bottom:15px">
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                <input type="text" id="searchInput" class="form-control" placeholder="Search by name, head, branch..." />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select id="statusFilter" class="form-control">
+                <option value="">-- All Status --</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped" id="deptTable">
+            <thead>
+                <tr>
+                    <th style="width:50px">#</th>
+                    <th>Branch</th>
+                    <th>Department Name</th>
+                    <th>Department Head</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th style="width:160px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int sr = 1; }
+                @foreach (var d in Model)
+                {
+                    <tr>
+                        <td>@(sr++)</td>
+                        <td><i class="fa fa-code-fork text-primary"></i> @(d.Branch != null ? d.Branch.Name : "N/A")</td>
+                        <td><strong><i class="fa fa-sitemap text-info"></i> @d.Name</strong></td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(d.DepartmentHead))
+                            {<span><i class="fa fa-user-o"></i> @d.DepartmentHead</span> }
+                        else
+                        { <span class="text-muted">-</span>}
+                        </td>
+                        <td>@(string.IsNullOrEmpty(d.Description) ? "-" : d.Description)</td>
+                        <td>
+                            @if (d.IsActive)
+                            {<span class="badge-active">Active</span> }
+                            else
+                            { <span class="badge-inactive">Inactive</span>}
+                        </td>
+                        <td>
+                            <a href="@Url.Action("Details", new { id = d.Id })" class="btn btn-info btn-sm" title="Details"><i class="fa fa-eye"></i></a>
+                            <a href="@Url.Action("Edit", new { id = d.Id })" class="btn btn-warning btn-sm" title="Edit"><i class="fa fa-pencil"></i></a>
+                            <a href="@Url.Action("ToggleStatus", new { id = d.Id })" class="btn btn-@(d.IsActive ? "default" : "success") btn-sm" title="Toggle"><i class="fa fa-refresh"></i></a>
+                            <a href="@Url.Action("Delete", new { id = d.Id })" class="btn btn-danger btn-sm" title="Delete" onclick="return confirm('Delete department: @d.Name ?')"><i class="fa fa-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted" style="padding:40px">
+                            <i class="fa fa-sitemap" style="font-size:45px;opacity:0.25"></i>
+                            <p style="margin-top:12px;font-size:15px">No departments found.</p>
+                            <a href="@Url.Action("Create")" class="btn btn-primary"><i class="fa fa-plus"></i> Add First Department</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $("#searchInput").on("keyup", function () {
+            var val = $(this).val().toLowerCase();
+            $("#deptTable tbody tr").each(function () {
+                $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
+            });
+        });
+        $("#statusFilter").on("change", function () {
+            var val = $(this).val();
+            $("#deptTable tbody tr").each(function () {
+                $(this).toggle(val === "" || $(this).find("td:eq(5)").text().trim() === val);
+            });
+        });
+    </script>
+}

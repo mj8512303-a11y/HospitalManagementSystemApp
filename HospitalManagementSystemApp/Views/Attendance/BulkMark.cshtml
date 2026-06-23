@@ -1,0 +1,149 @@
+@using HospitalMS.Controllers
+@{
+    ViewBag.Title = "Bulk Mark Attendance";
+    ViewBag.ActiveMenu = "Attendance";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var employees = ViewBag.Employees as List<BulkAttendanceVM> ?? new List<BulkAttendanceVM>();
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-users"></i> Bulk Mark Attendance — @ViewBag.Today</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Attendance</a></li>
+        <li class="active">Bulk Mark</li>
+    </ol>
+</div>
+
+<!-- Filter Form -->
+@using (Html.BeginForm("BulkMark","Attendance",FormMethod.Get))
+{
+    <div class="card-box">
+        <div class="card-title"><i class="fa fa-filter"></i> Select Branch & Type</div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="control-label">Branch <span class="text-danger">*</span></label>
+                    @Html.DropDownList("branchId",(SelectList)ViewBag.BranchList,"-- Select Branch --",new{@class="form-control"})
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="control-label">Employee Type</label>
+                    <select name="empType" class="form-control">
+                        <option value="Staff"  @(ViewBag.EmpType=="Staff"?"selected":"")>Staff</option>
+                        <option value="Doctor" @(ViewBag.EmpType=="Doctor"?"selected":"")>Doctor</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3" style="margin-top:24px">
+                <button type="submit" class="btn btn-primary btn-lg"><i class="fa fa-search"></i> Load Employees</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (employees.Any())
+{
+    <!-- Mark All Buttons -->
+    <div class="card-box" style="padding:12px 20px">
+        <strong style="font-size:13px">Quick Mark All:</strong>
+        <button type="button" onclick="markAll('Present')"  class="btn btn-success btn-sm" style="margin-left:10px"><i class="fa fa-check"></i> All Present</button>
+        <button type="button" onclick="markAll('Absent')"   class="btn btn-danger btn-sm"  style="margin-left:5px"><i class="fa fa-times"></i> All Absent</button>
+        <button type="button" onclick="markAll('Leave')"    class="btn btn-info btn-sm"    style="margin-left:5px"><i class="fa fa-calendar"></i> All Leave</button>
+        <span class="pull-right text-muted" style="font-size:12px;margin-top:6px">
+            <i class="fa fa-info-circle"></i> @employees.Count(e=>e.AlreadyMarked) already marked today
+        </span>
+    </div>
+
+    using (Html.BeginForm("BulkMark","Attendance",FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="empType"  value="@ViewBag.EmpType" />
+        <input type="hidden" name="branchId" value="@Request.QueryString["branchId"]" />
+
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-list"></i> @employees.Count Employees — Mark Attendance</div>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="bulkTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Photo</th>
+                            <th>Employee Name</th>
+                            <th>Designation</th>
+                            <th style="width:160px">Status <span class="text-danger">*</span></th>
+                            <th>Remarks</th>
+                            <th>Today</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ int si = 0; }
+                        @foreach (var emp in employees)
+                        {
+                            <tr style="@(emp.AlreadyMarked ? "background:#f0fff4" : "")">
+                                <td>@(si+1)</td>
+                                <td>
+                                    <input type="hidden" name="employees[@si].EmployeeId"   value="@emp.EmployeeId" />
+                                    <input type="hidden" name="employees[@si].EmployeeType" value="@emp.EmployeeType" />
+                                    @if (!string.IsNullOrEmpty(emp.PhotoPath))
+                                    {<img src="@emp.PhotoPath" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #ddd" />}
+                                    else
+                                    {<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#2980b9,#1a3c5e);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700">@emp.FullName[0].ToString().ToUpper()</div>}
+                                </td>
+                                <td><strong>@emp.FullName</strong></td>
+                                <td><small class="text-muted">@emp.Designation</small></td>
+                                <td>
+                                    <select name="employees[@si].Status" class="form-control status-select"
+                                        style="border-color:@(emp.Status=="Present"?"#27ae60":emp.Status=="Absent"?"#e74c3c":emp.Status=="Late"?"#f39c12":"#3498db")">
+                                        <option value="Present" @(emp.Status=="Present"?"selected":"")>Present</option>
+                                        <option value="Absent"  @(emp.Status=="Absent"?"selected":"")>Absent</option>
+                                        <option value="Late"    @(emp.Status=="Late"?"selected":"")>Late</option>
+                                        <option value="HalfDay" @(emp.Status=="HalfDay"?"selected":"")>Half Day</option>
+                                        <option value="Leave"   @(emp.Status=="Leave"?"selected":"")>Leave</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" name="employees[@si].Remarks" class="form-control" placeholder="Remarks..." style="font-size:12px" />
+                                </td>
+                                <td>
+                                    @if (emp.AlreadyMarked)
+                                    { <span class="badge-active" style="font-size:11px">Updated</span> }
+                                    else
+                                    { <span class="label label-default" style="font-size:11px">New</span> }
+                                </td>
+                            </tr>
+                            si++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card-box">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fa fa-save"></i> Save All Attendance
+            </button>
+            <a href="@Url.Action("Index")" class="btn btn-default btn-lg">
+                <i class="fa fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+    }
+
+}
+else if (Request.QueryString["branchId"] != null)
+{
+    <div class="alert alert-warning"><i class="fa fa-exclamation-triangle"></i> No active employees found for selected branch and type.</div>
+}
+
+@section Scripts {
+<script>
+function markAll(status) {
+    $(".status-select").val(status).trigger("change");
+}
+$(".status-select").on("change", function() {
+    var colors = {Present:"#27ae60",Absent:"#e74c3c",Late:"#f39c12",HalfDay:"#8e44ad",Leave:"#3498db"};
+    $(this).css("border-color", colors[$(this).val()] || "#ddd");
+});
+</script>
+}

@@ -1,0 +1,128 @@
+﻿@model HospitalMS.Models.Billing
+@{
+    ViewBag.Title = "Bill Details";
+    ViewBag.ActiveMenu = "Billing";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string statusColor = Model.Status == "Paid" ? "#27ae60" : Model.Status == "Partial" ? "#f39c12" : "#e74c3c";
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-eye"></i> Bill Details — <span style="color:#2980b9">@Model.InvoiceNo</span></h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Billing</a></li>
+        <li class="active">Details</li>
+    </ol>
+</div>
+
+<div class="row">
+    <!-- Left Card -->
+    <div class="col-md-4">
+        <div class="card-box text-center">
+            <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#1a3c5e,#2980b9);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:30px;margin-bottom:12px">
+                <i class="fa fa-file-text-o"></i>
+            </div>
+            <h4 style="color:#2980b9;font-weight:700">@Model.InvoiceNo</h4>
+            <p style="font-size:13px;color:#888">@Model.BillingDate.ToString("dddd, dd MMM yyyy")</p>
+
+            <div style="font-size:28px;font-weight:700;color:@statusColor;margin:10px 0">
+                @Model.Status.ToUpper()
+            </div>
+
+            <div style="background:#eaf4fb;border-radius:8px;padding:14px;margin-top:10px">
+                <div style="font-size:24px;font-weight:700;color:#2980b9">Rs. @Model.TotalAmount.ToString("N0")</div>
+                <div style="font-size:12px;color:#888">Total Amount</div>
+            </div>
+            <div class="row text-center" style="margin-top:10px">
+                <div class="col-xs-6">
+                    <div style="background:#d4edda;border-radius:8px;padding:10px">
+                        <div style="font-size:18px;font-weight:700;color:#155724">Rs. @Model.PaidAmount.ToString("N0")</div>
+                        <div style="font-size:11px;color:#666">Paid</div>
+                    </div>
+                </div>
+                <div class="col-xs-6">
+                    <div style="background:@(Model.RemainingAmount>0?"#fde8e8":"#d4edda");border-radius:8px;padding:10px">
+                        <div style="font-size:18px;font-weight:700;color:@(Model.RemainingAmount>0?"#c0392b":"#155724")">Rs. @Model.RemainingAmount.ToString("N0")</div>
+                        <div style="font-size:11px;color:#666">Remaining</div>
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+
+            @if (Model.Status != "Paid")
+            {
+                <div style="margin-bottom:8px">
+                    <strong style="font-size:12px">Quick Payment:</strong>
+                    @using (Html.BeginForm("QuickPay", "Billing", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <div class="input-group" style="margin-top:6px">
+                            <span class="input-group-addon">Rs.</span>
+                            <input type="number" name="amount" class="form-control" placeholder="Amount" min="1" max="@Model.RemainingAmount" />
+                            <span class="input-group-btn">
+                                <button type="submit" class="btn btn-success">Pay</button>
+                            </span>
+                        </div>
+                    }
+                </div>
+            }
+
+            <a href="@Url.Action("Invoice",new{id=Model.Id})" target="_blank" class="btn btn-primary btn-sm btn-block"><i class="fa fa-print"></i> Print Invoice</a>
+            <a href="@Url.Action("Edit",new{id=Model.Id})" class="btn btn-warning btn-sm btn-block" style="margin-top:5px"><i class="fa fa-pencil"></i> Edit Bill</a>
+            <a href="@Url.Action("Index")" class="btn btn-default btn-sm btn-block" style="margin-top:5px"><i class="fa fa-arrow-left"></i> Back</a>
+        </div>
+    </div>
+
+    <!-- Right Info -->
+    <div class="col-md-8">
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-wheelchair"></i> Patient & Branch</div>
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-bordered">
+                        <tr><th style="background:#f8f9fa;width:40%">Patient</th><td><strong>@(Model.Patient != null ? Model.Patient.FullName : "N/A")</strong></td></tr>
+                        <tr><th style="background:#f8f9fa">Patient ID</th><td><span style="background:#eaf4fb;color:#2980b9;padding:2px 8px;border-radius:8px;font-weight:700">P-@(Model.Patient != null ? Model.Patient.Id.ToString("D4") : "0000")</span></td></tr>
+                        <tr><th style="background:#f8f9fa">Phone</th><td>@(Model.Patient != null ? Model.Patient.Phone : "-")</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-bordered">
+                        <tr><th style="background:#f8f9fa;width:40%">Branch</th><td>@(Model.Branch != null ? Model.Branch.Name : "N/A")</td></tr>
+                        <tr><th style="background:#f8f9fa">Payment Mode</th><td><span class="label label-default">@Model.PaymentMode</span></td></tr>
+                        <tr><th style="background:#f8f9fa">Status</th><td><strong style="color:@statusColor">@Model.Status</strong></td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-list-alt"></i> Charges Breakdown</div>
+            <table class="table table-bordered">
+                <tr><th style="background:#f8f9fa">Consultation Fee</th><td class="text-right">Rs. @Model.ConsultationFee.ToString("N0")</td></tr>
+                <tr><th style="background:#f8f9fa">Test / Lab Charges</th><td class="text-right">Rs. @Model.TestCharges.ToString("N0")</td></tr>
+                <tr><th style="background:#f8f9fa">Medicine Charges</th><td class="text-right">Rs. @Model.MedicineCharges.ToString("N0")</td></tr>
+                <tr><th style="background:#f8f9fa">Other Charges</th><td class="text-right">Rs. @Model.OtherCharges.ToString("N0")</td></tr>
+                <tr><th style="background:#f8f9fa">Discount (−)</th><td class="text-right text-danger">− Rs. @Model.Discount.ToString("N0")</td></tr>
+                <tr style="background:#eaf4fb;font-weight:700;font-size:15px">
+                    <th>Total Amount</th>
+                    <td class="text-right" style="color:#2980b9">Rs. @Model.TotalAmount.ToString("N0")</td>
+                </tr>
+                <tr><th style="background:#f8f9fa">Paid Amount</th><td class="text-right text-success"><strong>Rs. @Model.PaidAmount.ToString("N0")</strong></td></tr>
+                <tr style="font-weight:700">
+                    <th style="background:#f8f9fa">Remaining</th>
+                    <td class="text-right" style="color:@(Model.RemainingAmount>0?"#e74c3c":"#27ae60")">
+                        Rs. @Model.RemainingAmount.ToString("N0")
+                    </td>
+                </tr>
+            </table>
+
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <div style="background:#f8f9fa;border-radius:6px;padding:12px;font-size:13px">
+                    <strong><i class="fa fa-comment"></i> Notes:</strong> @Model.Notes
+                </div>
+            }
+        </div>
+    </div>
+</div>

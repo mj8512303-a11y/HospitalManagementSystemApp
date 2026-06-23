@@ -1,0 +1,101 @@
+﻿@model HospitalMS.Models.Branch
+@{
+    ViewBag.Title = "Edit Branch";
+    ViewBag.ActiveMenu = "Branch";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header-box">
+    <h3><i class="fa fa-pencil"></i> Edit Branch</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Branch</a></li>
+        <li class="active">Edit</li>
+    </ol>
+</div>
+
+<div class="card-box">
+    <div class="card-title"><i class="fa fa-code-fork"></i> Update Branch Information</div>
+
+    @using (Html.BeginForm("Edit", "Branch", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.Id)
+        @Html.HiddenFor(m => m.CreatedAt)
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label">Hospital <span class="text-danger">*</span></label>
+                    @Html.DropDownList("HospitalId", (SelectList)ViewBag.HospitalId,
+                        "-- Select Hospital --", new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.HospitalId, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Name, new { @class = "control-label" })
+                    @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Code, new { @class = "control-label" })
+                    @Html.TextBoxFor(m => m.Code, new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m => m.ContactNo, new { @class = "control-label" })
+                    @Html.TextBoxFor(m => m.ContactNo, new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Email, new { @class = "control-label" })
+                    @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Location, new { @class = "control-label" })
+                    @Html.TextBoxFor(m => m.Location, new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    @Html.LabelFor(m => m.WorkingHours, new { @class = "control-label" })
+                    @Html.TextBoxFor(m => m.WorkingHours, new { @class = "form-control" })
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group" style="margin-top:10px">
+                    <div class="checkbox">
+                        <label>
+                            @Html.CheckBoxFor(m => m.IsActive)
+                            <strong>Is Active</strong>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr />
+        <button type="submit" class="btn btn-primary">
+            <i class="fa fa-save"></i> Update Branch
+        </button>
+        <a href="@Url.Action("Index")" class="btn btn-default">
+            <i class="fa fa-arrow-left"></i> Back to List
+        </a>
+    }
+</div>

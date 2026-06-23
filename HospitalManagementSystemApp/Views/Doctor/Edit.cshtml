@@ -1,0 +1,163 @@
+@model HospitalMS.Models.Doctor
+@{
+    ViewBag.Title = "Edit Doctor";
+    ViewBag.ActiveMenu = "Doctor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string[] allDays = { "Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday" };
+    string[] selectedDays = ViewBag.SelectedDays as string[] ?? new string[0];
+}
+
+<div class="page-header-box">
+    <h3><i class="fa fa-pencil"></i> Edit Doctor</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Doctors</a></li>
+        <li class="active">Edit</li>
+    </ol>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <i class="fa fa-exclamation-circle"></i> <strong>Please fix the errors below:</strong>
+        <ul style="margin:5px 0 0 15px">
+            @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            { <li>@err.ErrorMessage</li> }
+        </ul>
+    </div>
+}
+
+@using (Html.BeginForm("Edit","Doctor",FormMethod.Post,new{enctype="multipart/form-data"}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m=>m.Id)
+    @Html.HiddenFor(m=>m.PhotoPath)
+    @Html.HiddenFor(m=>m.CreatedAt)
+
+    <div class="card-box">
+        <div class="card-title"><i class="fa fa-user-md"></i> Doctor Personal Information</div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.FullName,new{@class="control-label"}) <span class="text-danger">*</span>
+                    @Html.TextBoxFor(m=>m.FullName,new{@class="form-control"})
+                    @Html.ValidationMessageFor(m=>m.FullName,"",new{@class="text-danger small"})
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.Specialization,new{@class="control-label"}) <span class="text-danger">*</span>
+                    @Html.TextBoxFor(m=>m.Specialization,new{@class="form-control"})
+                    @Html.ValidationMessageFor(m=>m.Specialization,"",new{@class="text-danger small"})
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.Qualification,new{@class="control-label"})
+                    @Html.TextBoxFor(m=>m.Qualification,new{@class="form-control"})
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.Phone,new{@class="control-label"})
+                    @Html.TextBoxFor(m=>m.Phone,new{@class="form-control"})
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.Email,new{@class="control-label"})
+                    @Html.TextBoxFor(m=>m.Email,new{@class="form-control"})
+                    @Html.ValidationMessageFor(m=>m.Email,"",new{@class="text-danger small"})
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.ConsultationFee,new{@class="control-label"})
+                    <div class="input-group">
+                        <span class="input-group-addon">Rs.</span>
+                        @Html.TextBoxFor(m=>m.ConsultationFee,new{@class="form-control",type="number",min="0"})
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-box">
+        <div class="card-title"><i class="fa fa-sitemap"></i> Branch & Department</div>
+        <div class="row">
+            <div class="col-md-5">
+                <div class="form-group">
+                    <label class="control-label">Branch</label>
+                    @Html.DropDownList("BranchId",(SelectList)ViewBag.BranchId,"-- Select --",new{@class="form-control"})
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="form-group">
+                    <label class="control-label">Department</label>
+                    @Html.DropDownList("DepartmentId",(SelectList)ViewBag.DepartmentId,"-- Select --",new{@class="form-control"})
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group" style="margin-top:25px">
+                    <div class="checkbox"><label>@Html.CheckBoxFor(m=>m.IsActive) <strong>Active</strong></label></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-box">
+        <div class="card-title"><i class="fa fa-calendar-check-o"></i> Available Days</div>
+        <div class="row">
+            @foreach (var day in allDays)
+            {
+                <div class="col-md-3" style="margin-bottom:8px">
+                    <div class="checkbox" style="border:1px solid #dde3ea;border-radius:6px;padding:8px 12px;margin:0;background:@(selectedDays.Contains(day)?"#eaf4fb":"#fff")">
+                        <label>
+                            <input type="checkbox" name="availableDays" value="@day"
+                                   @(selectedDays.Contains(day) ? "checked" : "") />
+                            <strong>@day</strong>
+                        </label>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card-box">
+        <div class="card-title"><i class="fa fa-camera"></i> Update Photo <small class="text-muted">(Leave empty to keep current)</small></div>
+        <div class="row">
+            <div class="col-md-4">
+                <input type="file" name="photoFile" class="form-control" accept=".jpg,.jpeg,.png" onchange="previewImg(this)" />
+                <div style="margin-top:10px;text-align:center">
+                    @if (!string.IsNullOrEmpty(Model.PhotoPath))
+                    {
+                        <img id="imgPreview" src="@Model.PhotoPath" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #27ae60" />
+                        <br /><small class="text-muted">Current Photo</small>
+                    }
+                    else
+                    {
+                        <img id="imgPreview" src="#" style="display:none;width:90px;height:90px;border-radius:50%;object-fit:cover" />
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-box">
+        <button type="submit" class="btn btn-primary btn-lg"><i class="fa fa-save"></i> Update Doctor</button>
+        <a href="@Url.Action("Index")" class="btn btn-default btn-lg"><i class="fa fa-arrow-left"></i> Back</a>
+    </div>
+}
+@section Scripts {
+<script>
+    function previewImg(input) {
+        if (input.files && input.files[0]) {
+            var r = new FileReader();
+            r.onload = function(e) { var img = document.getElementById("imgPreview"); img.src = e.target.result; img.style.display = "inline-block"; };
+            r.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+}

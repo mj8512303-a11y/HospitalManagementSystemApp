@@ -1,0 +1,61 @@
+@model HospitalMS.Models.Shift
+@{
+    ViewBag.Title = "Edit Shift";
+    ViewBag.ActiveMenu = "Shift";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-pencil"></i> Edit Shift</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Shift</a></li>
+        <li class="active">Edit</li>
+    </ol>
+</div>
+<div class="card-box">
+    <div class="card-title"><i class="fa fa-clock-o"></i> Update Shift Information</div>
+    @using (Html.BeginForm("Edit","Shift",FormMethod.Post)) {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m=>m.Id)
+        @Html.HiddenFor(m=>m.CreatedAt)
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.Name,new{@class="control-label"}) <span class="text-danger">*</span>
+                    @Html.TextBoxFor(m=>m.Name,new{@class="form-control"})
+                    @Html.ValidationMessageFor(m=>m.Name,"",new{@class="text-danger"})
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.StartTime,new{@class="control-label"})
+                    @Html.TextBoxFor(m=>m.StartTime,new{@class="form-control",type="time"})
+                    @Html.ValidationMessageFor(m=>m.StartTime,"",new{@class="text-danger"})
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.EndTime,new{@class="control-label"})
+                    @Html.TextBoxFor(m=>m.EndTime,new{@class="form-control",type="time"})
+                    @Html.ValidationMessageFor(m=>m.EndTime,"",new{@class="text-danger"})
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.Description,new{@class="control-label"})
+                    @Html.TextAreaFor(m=>m.Description,3,0,new{@class="form-control"})
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group" style="margin-top:25px">
+                    <div class="checkbox"><label>@Html.CheckBoxFor(m=>m.IsActive) <strong>Is Active</strong></label></div>
+                </div>
+            </div>
+        </div>
+        <hr />
+        <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Update Shift</button>
+        <a href="@Url.Action("Index")" class="btn btn-default"><i class="fa fa-arrow-left"></i> Back</a>
+    }
+</div>

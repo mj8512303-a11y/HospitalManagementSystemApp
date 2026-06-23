@@ -1,0 +1,81 @@
+@model IEnumerable<HospitalMS.Models.Shift>
+@{
+    ViewBag.Title = "Shift Management";
+    ViewBag.ActiveMenu = "Shift";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-clock-o"></i> Shift Management</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li class="active">Shift</li>
+    </ol>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <div class="stat-card stat-blue">
+            <div><div class="stat-number">@ViewBag.TotalShifts</div><div class="stat-label">Total Shifts</div></div>
+            <i class="fa fa-clock-o stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="stat-card stat-green">
+            <div><div class="stat-number">@ViewBag.ActiveShifts</div><div class="stat-label">Active Shifts</div></div>
+            <i class="fa fa-check-circle stat-icon"></i>
+        </div>
+    </div>
+</div>
+
+<div class="card-box">
+    <div class="card-title">
+        <i class="fa fa-list"></i> All Shifts
+        <a href="@Url.Action("Create")" class="btn btn-primary btn-sm pull-right"><i class="fa fa-plus"></i> Add Shift</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped" id="shiftTable">
+            <thead>
+                <tr>
+                    <th style="width:50px">#</th>
+                    <th>Shift Name</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Duration</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th style="width:160px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int sr = 1; }
+                @foreach (var s in Model)
+                {
+                    var dur = s.EndTime - s.StartTime;
+                    <tr>
+                        <td>@(sr++)</td>
+                        <td><strong><i class="fa fa-clock-o text-primary"></i> @s.Name</strong></td>
+                        <td><span class="label label-success"><i class="fa fa-play"></i> @s.StartTime.ToString(@"hh\:mm")</span></td>
+                        <td><span class="label label-danger"><i class="fa fa-stop"></i> @s.EndTime.ToString(@"hh\:mm")</span></td>
+                        <td><i class="fa fa-hourglass-half text-warning"></i> @dur.Hours hr @dur.Minutes min</td>
+                        <td>@(string.IsNullOrEmpty(s.Description)?"-":s.Description)</td>
+                        <td>@if(s.IsActive){<span class="badge-active">Active</span>}else{<span class="badge-inactive">Inactive</span>}</td>
+                        <td>
+                            <a href="@Url.Action("Edit",new{id=s.Id})" class="btn btn-warning btn-sm" title="Edit"><i class="fa fa-pencil"></i></a>
+                            <a href="@Url.Action("ToggleStatus",new{id=s.Id})" class="btn btn-@(s.IsActive?"default":"success") btn-sm" title="Toggle"><i class="fa fa-refresh"></i></a>
+                            <a href="@Url.Action("Delete",new{id=s.Id})" class="btn btn-danger btn-sm" title="Delete" onclick="return confirm('Delete shift: @s.Name ?')"><i class="fa fa-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted" style="padding:40px">
+                            <i class="fa fa-clock-o" style="font-size:45px;opacity:0.25"></i>
+                            <p style="margin-top:12px;font-size:15px">No shifts found.</p>
+                            <a href="@Url.Action("Create")" class="btn btn-primary"><i class="fa fa-plus"></i> Add First Shift</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

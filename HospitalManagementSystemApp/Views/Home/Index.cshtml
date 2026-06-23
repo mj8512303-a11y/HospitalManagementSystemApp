@@ -1,0 +1,970 @@
+﻿@{
+    ViewBag.Title = "Dashboard";
+    ViewBag.ActiveMenu = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    decimal totalPayroll = ViewBag.TotalPayroll;
+    decimal paidPayroll = ViewBag.PaidPayroll;
+    decimal unpaidPayroll = ViewBag.UnpaidPayroll;
+    double payrollPct = totalPayroll > 0 ? Math.Round((double)(paidPayroll / totalPayroll) * 100, 0) : 0;
+
+    int male = ViewBag.MalePatients;
+    int female = ViewBag.FemalePatients;
+    int other = ViewBag.OtherPatients;
+    int totalGender = male + female + other;
+    double malePct = totalGender > 0 ? Math.Round((double)male / totalGender * 100, 0) : 0;
+    double femalePct = totalGender > 0 ? Math.Round((double)female / totalGender * 100, 0) : 0;
+
+    string payColor = payrollPct >= 75 ? "#27ae60" : payrollPct >= 40 ? "#f39c12" : "#e74c3c";
+
+    var apts = ViewBag.TodayAppointmentList as IEnumerable<HospitalMS.Models.Appointment>;
+    var patients = ViewBag.RecentPatients as IEnumerable<HospitalMS.Models.Patient>;
+    var h = ViewBag.HospitalInfo as HospitalMS.Models.Hospital;
+}
+
+<style>
+/* ═══════════════════════════════════════
+   DASHBOARD — PROFESSIONAL STYLE
+═══════════════════════════════════════ */
+* { box-sizing: border-box; }
+.db-wrap { font-family: 'Segoe UI', sans-serif; }
+
+/* ── Page Header ── */
+.db-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; }
+.db-header h2 { margin:0 0 3px; font-size:20px; font-weight:700; color:#1a2e44; display:flex; align-items:center; gap:9px; }
+.db-header h2 i { color:#2980b9; }
+.db-date { font-size:12.5px; color:#95a5a6; }
+
+/* ── Stat Cards Row ── */
+.stat-row { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin-bottom:18px; }
+@@media(max-width:1100px){ .stat-row{ grid-template-columns:repeat(3,1fr); } }
+@@media(max-width:600px) { .stat-row{ grid-template-columns:repeat(2,1fr); } }
+
+.sc {
+    background:#fff; border-radius:11px; padding:14px 13px 12px;
+    border:1px solid #e8edf2; position:relative; overflow:hidden;
+    box-shadow:0 2px 7px rgba(0,0,0,0.04);
+    transition:transform 0.18s, box-shadow 0.18s; cursor:default;
+}
+.sc:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,0.08); }
+.sc::before {
+    content:''; position:absolute; top:0; left:0; right:0;
+    height:3px; border-radius:11px 11px 0 0;
+}
+.sc-blue::before   { background:#2980b9; }
+.sc-teal::before   { background:#16a085; }
+.sc-green::before  { background:#27ae60; }
+.sc-purple::before { background:#8e44ad; }
+.sc-orange::before { background:#e67e22; }
+.sc-red::before    { background:#e74c3c; }
+
+.sc-ico {
+    position:absolute; right:12px; top:14px;
+    width:36px; height:36px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center; font-size:16px;
+}
+.sc-blue .sc-ico   { background:#eaf4fb; color:#2980b9; }
+.sc-teal .sc-ico   { background:#e8f8f5; color:#16a085; }
+.sc-green .sc-ico  { background:#eafaf1; color:#27ae60; }
+.sc-purple .sc-ico { background:#f5eefb; color:#8e44ad; }
+.sc-orange .sc-ico { background:#fef5ec; color:#e67e22; }
+.sc-red .sc-ico    { background:#fdf2f0; color:#e74c3c; }
+
+.sc-num { font-size:26px; font-weight:800; color:#1a2e44; line-height:1; margin-bottom:3px; }
+.sc-lbl { font-size:10.5px; color:#7f8c9a; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; }
+
+/* ── Quick Actions Panel ── */
+.qa-panel {
+    background:#fff; border-radius:12px; border:1px solid #e8edf2;
+    box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-bottom:18px; overflow:hidden;
+}
+.qa-head {
+    display:flex; align-items:center; gap:9px;
+    padding:11px 18px; border-bottom:1px solid #f0f3f6; background:#f8fafb;
+}
+.qa-head span { font-size:12.5px; font-weight:700; color:#5d6d7e; text-transform:uppercase; letter-spacing:0.4px; }
+.qa-head i    { color:#2980b9; }
+.qa-grid {
+    display:grid; grid-template-columns:repeat(5,1fr); gap:0;
+}
+@@media(max-width:900px){ .qa-grid{ grid-template-columns:repeat(3,1fr); } }
+
+.qa-btn {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:8px; padding:18px 10px; cursor:pointer; border:none; background:#fff;
+    border-right:1px solid #f0f3f6; transition:background 0.16s, transform 0.16s;
+    text-decoration:none;
+}
+.qa-btn:last-child { border-right:none; }
+.qa-btn:hover { background:#f4f8fd; transform:translateY(-1px); }
+.qa-btn .qa-ico {
+    width:44px; height:44px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center; font-size:20px;
+    transition:transform 0.16s;
+}
+.qa-btn:hover .qa-ico { transform:scale(1.1); }
+.qa-btn .qa-lbl { font-size:12px; font-weight:600; color:#4a5568; text-align:center; line-height:1.3; }
+
+/* QA icon colors */
+.qa-c1 .qa-ico { background:#eafaf1; color:#27ae60; }
+.qa-c2 .qa-ico { background:#eaf4fb; color:#2980b9; }
+.qa-c3 .qa-ico { background:#e8f8f5; color:#16a085; }
+.qa-c4 .qa-ico { background:#fef9e7; color:#d4a017; }
+.qa-c5 .qa-ico { background:#fdf2f0; color:#e74c3c; }
+.qa-c6 .qa-ico { background:#f5eefb; color:#8e44ad; }
+.qa-c7 .qa-ico { background:#fef5ec; color:#e67e22; }
+
+/* ── Main Layout: left wide + right sidebar ── */
+.db-main { display:grid; grid-template-columns:1fr 340px; gap:18px; }
+@@media(max-width:1024px){ .db-main{ grid-template-columns:1fr; } }
+
+/* ── Widget Card ── */
+.wc {
+    background:#fff; border-radius:12px; border:1px solid #e8edf2;
+    box-shadow:0 2px 8px rgba(0,0,0,0.04); overflow:hidden; margin-bottom:18px;
+}
+.wc:last-child { margin-bottom:0; }
+.wc-head {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 18px; border-bottom:1px solid #f0f3f6; background:#f8fafb;
+}
+.wc-head-title { font-size:13px; font-weight:700; color:#1a2e44; display:flex; align-items:center; gap:8px; }
+.wc-head-title i { color:#2980b9; font-size:15px; }
+.wc-body { padding:16px 18px; }
+.wc-body-np { /* no padding */ }
+
+/* ── Mini stat trio ── */
+.trio { display:grid; grid-template-columns:repeat(3,1fr); gap:0; }
+.trio-item { text-align:center; padding:14px 8px; border-right:1px solid #f0f3f6; }
+.trio-item:last-child { border-right:none; }
+.trio-num { font-size:28px; font-weight:800; line-height:1; margin-bottom:4px; }
+.trio-lbl { font-size:11px; color:#95a5a6; font-weight:600; text-transform:uppercase; letter-spacing:0.3px; }
+.wc-footer { padding:12px 18px; border-top:1px solid #f0f3f6; background:#f8fafb; }
+
+/* ── Table ── */
+.db-tbl { width:100%; border-collapse:collapse; font-size:13px; }
+.db-tbl thead th {
+    padding:9px 14px; font-size:11px; font-weight:700; color:#5d6d7e;
+    text-transform:uppercase; letter-spacing:0.4px;
+    border-bottom:2px solid #e8edf2; background:#f4f7fb; text-align:left;
+}
+.db-tbl tbody tr { border-bottom:1px solid #f0f3f6; transition:background 0.12s; }
+.db-tbl tbody tr:hover { background:#f8fbfe; }
+.db-tbl td { padding:9px 14px; color:#2c3e50; vertical-align:middle; }
+.db-tbl .t-name { font-weight:700; color:#1a2e44; font-size:13.5px; }
+.db-empty { text-align:center; padding:40px 20px; color:#bdc3c7; }
+.db-empty i { font-size:38px; display:block; margin-bottom:10px; opacity:0.3; }
+.db-empty p { margin:0; font-size:13px; }
+
+/* ── Badges ── */
+.bdg { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; font-size:11.5px; font-weight:700; }
+.bdg-approved  { background:#eaf4fb; color:#2471a3; }
+.bdg-pending   { background:#fef9e7; color:#b7770d; }
+.bdg-completed { background:#eafaf1; color:#1e8449; }
+.bdg-cancelled { background:#fdf2f0; color:#c0392b; }
+.bdg-opd { background:#eafaf1; color:#1e8449; }
+.bdg-ipd { background:#fef5ec; color:#ca6f1e; }
+.pat-pill { background:#eaf4fb; color:#2471a3; padding:2px 8px; border-radius:8px; font-size:12px; font-weight:700; }
+
+/* ── Progress bar ── */
+.prog-wrap { background:#eef2f7; border-radius:6px; height:12px; overflow:hidden; }
+.prog-bar  { height:100%; border-radius:6px; transition:width 0.6s ease; }
+
+/* ── Gender bar ── */
+.gender-bar { display:flex; height:20px; border-radius:8px; overflow:hidden; margin-bottom:12px; }
+.g-male   { background:#2980b9; }
+.g-female { background:#e91e8c; }
+.g-other  { background:#bdc3c7; }
+
+.g-row { display:grid; grid-template-columns:repeat(3,1fr); text-align:center; }
+.g-num { font-size:20px; font-weight:800; line-height:1; margin-bottom:3px; }
+.g-lbl { font-size:11px; color:#95a5a6; font-weight:600; }
+
+/* ── Hospital Info Table ── */
+.h-tbl { width:100%; border-collapse:collapse; font-size:13px; }
+.h-tbl tr { border-bottom:1px solid #f0f3f6; }
+.h-tbl tr:last-child { border-bottom:none; }
+.h-tbl th { width:38%; padding:8px 12px; background:#f8fafb; font-size:11.5px; font-weight:700; color:#7f8c9a; text-transform:uppercase; letter-spacing:0.3px; }
+.h-tbl td { padding:8px 12px; color:#2c3e50; font-size:13px; }
+
+/* ── Payroll summary ── */
+.pay-pct { font-size:30px; font-weight:800; line-height:1; }
+.pay-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+.pay-item { background:#f8fafb; border-radius:9px; padding:10px 12px; }
+.pay-item-num { font-size:16px; font-weight:800; margin-bottom:2px; }
+.pay-item-lbl { font-size:11px; color:#95a5a6; font-weight:600; text-transform:uppercase; letter-spacing:0.3px; }
+
+/* ── Action link button ── */
+.btn-sm-ph {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:7px 14px; border-radius:8px; font-size:13px; font-weight:600;
+    cursor:pointer; border:none; text-decoration:none; transition:all 0.16s;
+}
+.btn-sm-green  { background:#27ae60; color:#fff; } .btn-sm-green:hover  { background:#1e8449; color:#fff; }
+.btn-sm-blue   { background:#2980b9; color:#fff; } .btn-sm-blue:hover   { background:#1a6fa8; color:#fff; }
+.btn-sm-def    { background:#f0f3f7; color:#5d6d7e; border:1px solid #dce3ea; } .btn-sm-def:hover { background:#e4e9ef; color:#5d6d7e; }
+.btn-sm-orange { background:#e67e22; color:#fff; } .btn-sm-orange:hover { background:#ca6f1e; color:#fff; }
+
+/* ── Modals ── */
+.modal-content { border:none; border-radius:13px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+.modal-header  { padding:14px 18px; border:none; display:flex; align-items:center; }
+.modal-header .modal-title { color:#fff; font-size:15px; font-weight:700; display:flex; align-items:center; gap:9px; flex:1; }
+.modal-header .close { color:rgba(255,255,255,0.85)!important; opacity:1; font-size:22px; padding:0; margin:0; text-shadow:none; background:none; border:none; cursor:pointer; line-height:1; }
+.modal-header .close:hover { color:#fff!important; }
+.modal-body   { padding:20px; background:#fff; }
+.modal-footer { background:#f8fafb; border-top:1px solid #e8edf2; padding:12px 18px; display:flex; justify-content:flex-end; gap:10px; }
+.mh-green  { background:linear-gradient(135deg,#0d6b55,#27ae60); }
+.mh-blue   { background:linear-gradient(135deg,#154360,#2980b9); }
+.mh-teal   { background:linear-gradient(135deg,#0d6b55,#16a085); }
+.mh-yellow { background:linear-gradient(135deg,#7d6608,#d4ac0d); }
+.mh-red    { background:linear-gradient(135deg,#922b21,#e74c3c); }
+.mh-purple { background:linear-gradient(135deg,#512e5f,#8e44ad); }
+.mh-orange { background:linear-gradient(135deg,#784212,#e67e22); }
+
+/* Form in modal */
+.fm-lbl { font-size:12px; font-weight:700; color:#5d6d7e; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:6px; display:block; }
+.fm-lbl .req { color:#e74c3c; }
+.fm-ctrl { width:100%; height:38px; border:1.5px solid #dce3ea; border-radius:8px; padding:0 12px; font-size:13.5px; color:#2c3e50; background:#fff; outline:none; transition:border-color 0.18s; box-sizing:border-box; }
+.fm-ctrl:focus { border-color:#2980b9; box-shadow:0 0 0 3px rgba(41,128,185,0.1); }
+.fm-row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.fm-row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+.fm-grp  { margin-bottom:14px; }
+.fm-alert { display:none; padding:9px 13px; border-radius:8px; font-size:13px; font-weight:600; margin-bottom:13px; align-items:center; gap:8px; background:#fdf2f0; color:#c0392b; border:1px solid #f5c6c6; }
+
+/* Toast */
+#db-toast {
+    display:none; position:fixed; top:20px; right:20px; z-index:99999;
+    min-width:290px; padding:12px 18px; border-radius:10px;
+    box-shadow:0 8px 28px rgba(0,0,0,0.18); font-size:14px; font-weight:600;
+    color:#fff; align-items:center; gap:10px;
+}
+
+/* ── Info tiles in modals ── */
+.info-tile { background:#f4f7fb; border-radius:9px; padding:14px 16px; margin-bottom:10px; }
+.info-tile-title { font-size:11.5px; font-weight:700; color:#7f8c9a; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:8px; }
+.info-tile-body { font-size:22px; font-weight:800; color:#1a2e44; }
+.info-tile-sub  { font-size:12px; color:#95a5a6; margin-top:2px; }
+
+.info-trio { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+.it-item { background:#f4f7fb; border-radius:9px; padding:12px 10px; text-align:center; }
+.it-num  { font-size:22px; font-weight:800; line-height:1; margin-bottom:3px; }
+.it-lbl  { font-size:11px; color:#95a5a6; font-weight:600; text-transform:uppercase; }
+
+.detail-tbl { width:100%; border-collapse:collapse; }
+.detail-tbl tr { border-bottom:1px solid #f0f3f6; }
+.detail-tbl tr:last-child { border-bottom:none; }
+.detail-tbl th { width:36%; padding:8px 12px; background:#f8fafb; font-size:12px; font-weight:700; color:#7f8c9a; text-transform:uppercase; }
+.detail-tbl td { padding:8px 12px; font-size:13.5px; color:#2c3e50; }
+
+.modal-section { font-size:11px; font-weight:700; color:#aab5c0; text-transform:uppercase; letter-spacing:0.8px; margin:16px 0 10px; padding-bottom:7px; border-bottom:1px solid #e8edf2; }
+</style>
+
+<div class="db-wrap">
+
+    <!-- ─── PAGE HEADER ─── -->
+    <div class="db-header">
+        <div>
+            <div class="db-date"><i class="fa fa-calendar-o"></i> @DateTime.Today.ToString("dddd, dd MMMM yyyy")</div>
+            <h2><i class="fa fa-tachometer"></i> Hospital Dashboard</h2>
+        </div>
+        @if (h != null)
+        {
+            <div style="text-align:right">
+                <div style="font-size:14px;font-weight:700;color:#1a2e44">@h.Name</div>
+                <div style="font-size:12px;color:#95a5a6">@h.ContactNo</div>
+            </div>
+        }
+    </div>
+
+    <!-- ─── STAT CARDS ─── -->
+    <div class="stat-row">
+        <div class="sc sc-blue">
+            <div class="sc-ico"><i class="fa fa-code-fork"></i></div>
+            <div class="sc-num">@ViewBag.TotalBranches</div>
+            <div class="sc-lbl">Branches</div>
+        </div>
+        <div class="sc sc-teal">
+            <div class="sc-ico"><i class="fa fa-sitemap"></i></div>
+            <div class="sc-num">@ViewBag.TotalDepartments</div>
+            <div class="sc-lbl">Departments</div>
+        </div>
+        <div class="sc sc-green">
+            <div class="sc-ico"><i class="fa fa-user-md"></i></div>
+            <div class="sc-num">@ViewBag.TotalDoctors</div>
+            <div class="sc-lbl">Doctors</div>
+        </div>
+        <div class="sc sc-purple">
+            <div class="sc-ico"><i class="fa fa-users"></i></div>
+            <div class="sc-num">@ViewBag.TotalStaff</div>
+            <div class="sc-lbl">Staff</div>
+        </div>
+        <div class="sc sc-orange">
+            <div class="sc-ico"><i class="fa fa-wheelchair"></i></div>
+            <div class="sc-num">@ViewBag.TotalPatients</div>
+            <div class="sc-lbl">Patients</div>
+        </div>
+        <div class="sc sc-red">
+            <div class="sc-ico"><i class="fa fa-calendar"></i></div>
+            <div class="sc-num">@ViewBag.TodayAppointments</div>
+            <div class="sc-lbl">Today Appts</div>
+        </div>
+    </div>
+
+    <!-- ─── QUICK ACTIONS ─── -->
+    <div class="qa-panel">
+        <div class="qa-head">
+            <i class="fa fa-bolt"></i>
+            <span>Quick Actions</span>
+        </div>
+        <div class="qa-grid">
+            <!-- Each button opens a modal -->
+            <button class="qa-btn qa-c1" onclick="$('#modal-patient').modal('show')">
+                <div class="qa-ico"><i class="fa fa-user-plus"></i></div>
+                <span class="qa-lbl">Register Patient</span>
+            </button>
+            <button class="qa-btn qa-c2" onclick="$('#modal-appt').modal('show')">
+                <div class="qa-ico"><i class="fa fa-calendar-plus-o"></i></div>
+                <span class="qa-lbl">Book Appointment</span>
+            </button>
+            <button class="qa-btn qa-c3" onclick="$('#modal-attendance').modal('show')">
+                <div class="qa-ico"><i class="fa fa-fingerprint"></i></div>
+                <span class="qa-lbl">Attendance</span>
+            </button>
+            <button class="qa-btn qa-c4" onclick="$('#modal-salary').modal('show')">
+                <div class="qa-ico"><i class="fa fa-money"></i></div>
+                <span class="qa-lbl">Payroll</span>
+            </button>
+            <button class="qa-btn qa-c5" onclick="$('#modal-reports').modal('show')">
+                <div class="qa-ico"><i class="fa fa-bar-chart"></i></div>
+                <span class="qa-lbl">Reports</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ─── MAIN BODY ─── -->
+    <div class="db-main">
+
+        <!-- LEFT: Tables -->
+        <div>
+            <!-- Today's Appointments -->
+            <div class="wc">
+                <div class="wc-head">
+                    <div class="wc-head-title"><i class="fa fa-calendar-check-o"></i> Today's Appointments</div>
+                    <a href="@Url.Action("Index","Appointment")" class="btn-sm-ph btn-sm-def" style="font-size:12px;padding:5px 12px">
+                        <i class="fa fa-external-link"></i> View All
+                    </a>
+                </div>
+                <!-- Appointment mini stats -->
+                <div class="trio">
+                    <div class="trio-item">
+                        <div class="trio-num" style="color:#f39c12">@ViewBag.PendingAppointments</div>
+                        <div class="trio-lbl">Pending</div>
+                    </div>
+                    <div class="trio-item">
+                        <div class="trio-num" style="color:#2980b9">@ViewBag.TodayAppointments</div>
+                        <div class="trio-lbl">Today</div>
+                    </div>
+                    <div class="trio-item">
+                        <div class="trio-num" style="color:#27ae60">@ViewBag.CompletedAppointments</div>
+                        <div class="trio-lbl">Completed</div>
+                    </div>
+                </div>
+                @if (apts != null && apts.Any())
+                {
+                    <div style="overflow-x:auto">
+                        <table class="db-tbl">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Time Slot</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{ int i = 1; }
+                                @foreach (var apt in apts)
+                                {
+                                    <tr>
+                                        <td style="color:#95a5a6;font-size:12px">@(i++)</td>
+                                        <td class="t-name">@(apt.Patient != null ? apt.Patient.FullName : "N/A")</td>
+                                        <td style="color:#5d6d7e">Dr. @(apt.Doctor != null ? apt.Doctor.FullName : "N/A")</td>
+                                        <td><i class="fa fa-clock-o" style="color:#2980b9"></i> @apt.TimeSlot</td>
+                                        <td>
+                                            @if (apt.Status == "Approved")
+                                            {<span class="bdg bdg-approved">Approved</span> }
+                                            else if (apt.Status == "Pending")
+                                            { <span class="bdg bdg-pending">Pending</span> }
+                                            else if (apt.Status == "Completed")
+                                            { <span class="bdg bdg-completed">Completed</span> }
+                                            else
+                                            { <span class="bdg bdg-cancelled">@apt.Status</span>}
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="db-empty">
+                        <i class="fa fa-calendar-times-o"></i>
+                        <p>No appointments scheduled for today.</p>
+                    </div>
+                }
+                <div class="wc-footer">
+                    <button class="btn-sm-ph btn-sm-blue" onclick="$('#modal-appt').modal('show')">
+                        <i class="fa fa-calendar-plus-o"></i> Book New Appointment
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recent Patients -->
+            <div class="wc">
+                <div class="wc-head">
+                    <div class="wc-head-title"><i class="fa fa-wheelchair"></i> Recently Registered Patients</div>
+                    <a href="@Url.Action("Index","Patient")" class="btn-sm-ph btn-sm-def" style="font-size:12px;padding:5px 12px">
+                        <i class="fa fa-external-link"></i> View All
+                    </a>
+                </div>
+                @if (patients != null && patients.Any())
+                {
+                    <div style="overflow-x:auto">
+                        <table class="db-tbl">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Patient ID</th>
+                                    <th>Name</th>
+                                    <th>Age/Gender</th>
+                                    <th>Phone</th>
+                                    <th>Type</th>
+                                    <th>Registered</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{ int j = 1; }
+                                @foreach (var p in patients)
+                                {
+                                    <tr>
+                                        <td style="color:#95a5a6;font-size:12px">@(j++)</td>
+                                        <td><span class="pat-pill">P-@p.Id.ToString("D4")</span></td>
+                                        <td class="t-name">@p.FullName</td>
+                                        <td style="color:#5d6d7e">@p.Age / @p.Gender</td>
+                                        <td style="color:#5d6d7e">@p.Phone</td>
+                                        <td>
+                                            @if (p.PatientType == "OPD")
+                                            {<span class="bdg bdg-opd">OPD</span> }
+                                            else
+                                            { <span class="bdg bdg-ipd">IPD</span>}
+                                        </td>
+                                        <td style="color:#5d6d7e">@p.RegistrationDate.ToString("dd MMM yyyy")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="db-empty">
+                        <i class="fa fa-wheelchair"></i>
+                        <p>No patients registered yet.</p>
+                    </div>
+                }
+                <div class="wc-footer">
+                    <button class="btn-sm-ph btn-sm-green" onclick="$('#modal-patient').modal('show')">
+                        <i class="fa fa-user-plus"></i> Register New Patient
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDEBAR -->
+        <div>
+
+            <!-- Today's Attendance -->
+            <div class="wc">
+                <div class="wc-head">
+                    <div class="wc-head-title"><i class="fa fa-calendar-check-o"></i> Today's Attendance</div>
+                </div>
+                <div class="trio">
+                    <div class="trio-item">
+                        <div class="trio-num" style="color:#27ae60">@ViewBag.PresentToday</div>
+                        <div class="trio-lbl">Present</div>
+                    </div>
+                    <div class="trio-item">
+                        <div class="trio-num" style="color:#e74c3c">@ViewBag.AbsentToday</div>
+                        <div class="trio-lbl">Absent</div>
+                    </div>
+                    <div class="trio-item">
+                        <div class="trio-num" style="color:#3498db">@ViewBag.LeaveToday</div>
+                        <div class="trio-lbl">On Leave</div>
+                    </div>
+                </div>
+                <div class="wc-footer">
+                    <a href="@Url.Action("BiometricTerminal","Attendance")" class="btn-sm-ph btn-sm-teal" style="background:#16a085;color:#fff">
+                        <i class="fa fa-fingerprint"></i> Biometric Terminal
+                    </a>
+                </div>
+            </div>
+
+            <!-- Payroll -->
+            <div class="wc">
+                <div class="wc-head">
+                    <div class="wc-head-title"><i class="fa fa-money"></i> Payroll — @ViewBag.SalaryMonthName</div>
+                </div>
+                <div class="wc-body">
+                    <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+                        <div class="pay-pct" style="color:@payColor">@payrollPct%</div>
+                        <div style="flex:1">
+                            <div class="prog-wrap">
+                                <div class="prog-bar" style="width:@payrollPct%;background:@payColor"></div>
+                            </div>
+                            <div style="font-size:11px;color:#95a5a6;margin-top:4px">Salaries paid this month</div>
+                        </div>
+                    </div>
+                    <div class="pay-row">
+                        <div class="pay-item">
+                            <div class="pay-item-num" style="color:#27ae60">Rs. @paidPayroll.ToString("N0")</div>
+                            <div class="pay-item-lbl">Paid</div>
+                        </div>
+                        <div class="pay-item">
+                            <div class="pay-item-num" style="color:#e74c3c">Rs. @unpaidPayroll.ToString("N0")</div>
+                            <div class="pay-item-lbl">Pending</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="wc-footer">
+                    <a href="@Url.Action("Index","Salary")" class="btn-sm-ph btn-sm-def">
+                        <i class="fa fa-money"></i> Manage Payroll
+                    </a>
+                </div>
+            </div>
+
+            <!-- Patient Demographics -->
+            <div class="wc">
+                <div class="wc-head">
+                    <div class="wc-head-title"><i class="fa fa-venus-mars"></i> Patient Demographics</div>
+                </div>
+                <div class="wc-body">
+                    @if (totalGender > 0)
+                    {
+                        <div class="gender-bar">
+                            <div class="g-male" style="width:@malePct%" title="Male @malePct%"></div>
+                            <div class="g-female" style="width:@femalePct%" title="Female @femalePct%"></div>
+                            <div class="g-other" style="width:@(100-malePct-femalePct)%" title="Other"></div>
+                        </div>
+                        <div class="g-row">
+                            <div>
+                                <div class="g-num" style="color:#2980b9">@male</div>
+                                <div class="g-lbl"><i class="fa fa-mars"></i> Male (@malePct%)</div>
+                            </div>
+                            <div>
+                                <div class="g-num" style="color:#e91e8c">@female</div>
+                                <div class="g-lbl"><i class="fa fa-venus"></i> Female (@femalePct%)</div>
+                            </div>
+                            <div>
+                                <div class="g-num" style="color:#95a5a6">@other</div>
+                                <div class="g-lbl">Other</div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="db-empty" style="padding:20px 0">
+                            <p>No patient data yet.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Hospital Info -->
+            @if (h != null)
+            {
+                <div class="wc">
+                    <div class="wc-head">
+                        <div class="wc-head-title"><i class="fa fa-building"></i> Hospital Info</div>
+                    </div>
+                    <div class="wc-body" style="padding:12px 18px">
+                        <table class="h-tbl">
+                            <tr><th>Name</th><td><strong>@h.Name</strong></td></tr>
+                            <tr><th>Reg No</th><td>@h.RegistrationNo</td></tr>
+                            <tr><th>Contact</th><td>@h.ContactNo</td></tr>
+                            <tr><th>Email</th><td>@h.Email</td></tr>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div><!-- /db-main -->
+</div><!-- /db-wrap -->
+<!-- ══════════════════════════════════════════════════
+     QUICK ACTION MODALS (all open on same page)
+══════════════════════════════════════════════════ -->
+<!-- ── 1. REGISTER PATIENT MODAL ── -->
+<div class="modal fade" id="modal-patient" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header mh-green">
+                <h4 class="modal-title"><i class="fa fa-user-plus"></i> Register New Patient</h4>
+                <button class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="pat-alert" class="fm-alert"></div>
+                <div class="modal-section">Personal Information</div>
+                <div class="fm-row2">
+                    <div class="fm-grp">
+                        <label class="fm-lbl">Full Name <span class="req">*</span></label>
+                        <input type="text" id="pat-name" class="fm-ctrl" placeholder="e.g. Ahmed Ali" />
+                    </div>
+                    <div class="fm-grp">
+                        <label class="fm-lbl">Phone <span class="req">*</span></label>
+                        <input type="text" id="pat-phone" class="fm-ctrl" placeholder="03xxxxxxxxx" />
+                    </div>
+                </div>
+                <div class="fm-row3">
+                    <div class="fm-grp">
+                        <label class="fm-lbl">Age</label>
+                        <input type="number" id="pat-age" class="fm-ctrl" min="0" max="150" placeholder="25" />
+                    </div>
+                    <div class="fm-grp">
+                        <label class="fm-lbl">Gender</label>
+                        <select id="pat-gender" class="fm-ctrl">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="fm-grp">
+                        <label class="fm-lbl">Patient Type</label>
+                        <select id="pat-type" class="fm-ctrl">
+                            <option value="OPD">OPD</option>
+                            <option value="IPD">IPD</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-section">Additional Info</div>
+                <div class="fm-row2">
+                    <div class="fm-grp">
+                        <label class="fm-lbl">Address</label>
+                        <input type="text" id="pat-addr" class="fm-ctrl" placeholder="Street / City" />
+                    </div>
+                    <div class="fm-grp">
+                        <label class="fm-lbl">CNIC / ID</label>
+                        <input type="text" id="pat-cnic" class="fm-ctrl" placeholder="xxxxx-xxxxxxx-x" />
+                    </div>
+                </div>
+                <div style="background:#eaf4fb;border-radius:9px;padding:12px 14px;font-size:13px;color:#2471a3;display:flex;align-items:center;gap:9px">
+                    <i class="fa fa-info-circle" style="font-size:16px"></i>
+                    Patient ID will be auto-generated after saving. Full registration available on the Patient page.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-sm-ph btn-sm-def" data-dismiss="modal"><i class="fa fa-times"></i> Cancel</button>
+                <button class="btn-sm-ph btn-sm-green" onclick="savePatient()"><i class="fa fa-save"></i> Register Patient</button>
+                <a href="@Url.Action("Create","Patient")" class="btn-sm-ph btn-sm-blue"><i class="fa fa-external-link"></i> Full Form</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── 2. BOOK APPOINTMENT MODAL ── -->
+<div class="modal fade" id="modal-appt" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header mh-blue">
+                <h4 class="modal-title"><i class="fa fa-calendar-plus-o"></i> Book Appointment</h4>
+                <button class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="appt-alert" class="fm-alert"></div>
+                <div class="modal-section">Appointment Details</div>
+                <div class="fm-row2">
+                    <div class="fm-grp">
+                        <label class="fm-lbl">Patient <span class="req">*</span></label>
+                        <select id="appt-patient" class="fm-ctrl">
+                            <option value="0">-- Select Patient --</option>
+                        </select>
+                    </div>
+                    <div class="fm-grp">
+                        <label class="fm-lbl">Doctor <span class="req">*</span></label>
+                        <select id="appt-doctor" class="fm-ctrl">
+                            <option value="0">-- Select Doctor --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="fm-row3">
+                    <div class="fm-grp">
+                        <label class="fm-lbl">Date <span class="req">*</span></label>
+                        <input type="date" id="appt-date" class="fm-ctrl" />
+                    </div>
+                    <div class="fm-grp">
+                        <label class="fm-lbl">Time Slot</label>
+                        <select id="appt-time" class="fm-ctrl">
+                            <option>08:00 AM - 09:00 AM</option>
+                            <option>09:00 AM - 10:00 AM</option>
+                            <option>10:00 AM - 11:00 AM</option>
+                            <option>11:00 AM - 12:00 PM</option>
+                            <option>12:00 PM - 01:00 PM</option>
+                            <option>02:00 PM - 03:00 PM</option>
+                            <option>03:00 PM - 04:00 PM</option>
+                            <option>04:00 PM - 05:00 PM</option>
+                            <option>05:00 PM - 06:00 PM</option>
+                        </select>
+                    </div>
+                    <div class="fm-grp">
+                        <label class="fm-lbl">Status</label>
+                        <select id="appt-status" class="fm-ctrl">
+                            <option value="Pending">Pending</option>
+                            <option value="Approved">Approved</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="fm-grp">
+                    <label class="fm-lbl">Remarks / Notes</label>
+                    <input type="text" id="appt-notes" class="fm-ctrl" placeholder="Optional notes..." />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-sm-ph btn-sm-def" data-dismiss="modal"><i class="fa fa-times"></i> Cancel</button>
+                <button class="btn-sm-ph btn-sm-blue" onclick="saveAppointment()"><i class="fa fa-save"></i> Book Appointment</button>
+                <a href="@Url.Action("Create","Appointment")" class="btn-sm-ph" style="background:#5d6d7e;color:#fff"><i class="fa fa-external-link"></i> Full Form</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── 3. ATTENDANCE MODAL (info + link) ── -->
+<div class="modal fade" id="modal-attendance" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header mh-teal">
+                <h4 class="modal-title"><i class="fa fa-calendar-check-o"></i> Attendance — Today</h4>
+                <button class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="info-trio">
+                    <div class="it-item">
+                        <div class="it-num" style="color:#27ae60">@ViewBag.PresentToday</div>
+                        <div class="it-lbl">Present</div>
+                    </div>
+                    <div class="it-item">
+                        <div class="it-num" style="color:#e74c3c">@ViewBag.AbsentToday</div>
+                        <div class="it-lbl">Absent</div>
+                    </div>
+                    <div class="it-item">
+                        <div class="it-num" style="color:#3498db">@ViewBag.LeaveToday</div>
+                        <div class="it-lbl">On Leave</div>
+                    </div>
+                </div>
+                <div style="background:#e8f8f5;border-radius:9px;padding:14px 16px;display:flex;align-items:center;gap:12px">
+                    <i class="fa fa-fingerprint" style="font-size:32px;color:#16a085"></i>
+                    <div>
+                        <div style="font-size:14px;font-weight:700;color:#1a2e44;margin-bottom:3px">Biometric Terminal</div>
+                        <div style="font-size:13px;color:#5d6d7e">Mark attendance via fingerprint scanner or manual entry</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-sm-ph btn-sm-def" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+                <a href="@Url.Action("BiometricTerminal","Attendance")" class="btn-sm-ph" style="background:#16a085;color:#fff">
+                    <i class="fa fa-fingerprint"></i> Open Biometric Terminal
+                </a>
+                <a href="@Url.Action("Index","Attendance")" class="btn-sm-ph btn-sm-blue">
+                    <i class="fa fa-list"></i> View All Attendance
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── 4. PAYROLL MODAL (info + links) ── -->
+<div class="modal fade" id="modal-salary" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header mh-yellow">
+                <h4 class="modal-title"><i class="fa fa-money"></i> Payroll — @ViewBag.SalaryMonthName</h4>
+                <button class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align:center;margin-bottom:16px">
+                    <div style="font-size:42px;font-weight:900;color:@payColor;line-height:1">@payrollPct%</div>
+                    <div style="font-size:13px;color:#95a5a6;margin-top:4px">Salaries disbursed this month</div>
+                    <div class="prog-wrap" style="margin:12px 0 4px">
+                        <div class="prog-bar" style="width:@payrollPct%;background:@payColor"></div>
+                    </div>
+                </div>
+                <div class="info-trio">
+                    <div class="it-item">
+                        <div class="it-num" style="color:#27ae60;font-size:16px">Rs. @paidPayroll.ToString("N0")</div>
+                        <div class="it-lbl">Paid</div>
+                    </div>
+                    <div class="it-item">
+                        <div class="it-num" style="color:#e74c3c;font-size:16px">Rs. @unpaidPayroll.ToString("N0")</div>
+                        <div class="it-lbl">Pending</div>
+                    </div>
+                    <div class="it-item">
+                        <div class="it-num" style="color:#1a2e44;font-size:16px">Rs. @totalPayroll.ToString("N0")</div>
+                        <div class="it-lbl">Total</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-sm-ph btn-sm-def" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+                <a href="@Url.Action("Generate","Salary")" class="btn-sm-ph" style="background:#d4a017;color:#fff">
+                    <i class="fa fa-magic"></i> Generate Salaries
+                </a>
+                <a href="@Url.Action("Index","Salary")" class="btn-sm-ph btn-sm-blue">
+                    <i class="fa fa-list"></i> Manage Payroll
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── 5. REPORTS MODAL ── -->
+<div class="modal fade" id="modal-reports" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header mh-red">
+                <h4 class="modal-title"><i class="fa fa-bar-chart"></i> Reports & Analytics</h4>
+                <button class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <a href="@Url.Action("Index","Reports")" class="qa-btn qa-c5" style="border:1px solid #f0f3f6;border-radius:10px;text-decoration:none">
+                        <div class="qa-ico"><i class="fa fa-bar-chart"></i></div>
+                        <span class="qa-lbl">All Reports</span>
+                    </a>
+                    <a href="@Url.Action("PatientReport","Reports")" class="qa-btn qa-c1" style="border:1px solid #f0f3f6;border-radius:10px;text-decoration:none">
+                        <div class="qa-ico"><i class="fa fa-wheelchair"></i></div>
+                        <span class="qa-lbl">Patient Report</span>
+                    </a>
+                    <a href="@Url.Action("AppointmentReport","Reports")" class="qa-btn qa-c2" style="border:1px solid #f0f3f6;border-radius:10px;text-decoration:none">
+                        <div class="qa-ico"><i class="fa fa-calendar"></i></div>
+                        <span class="qa-lbl">Appointment Report</span>
+                    </a>
+                    <a href="@Url.Action("PayrollReport","Reports")" class="qa-btn qa-c4" style="border:1px solid #f0f3f6;border-radius:10px;text-decoration:none">
+                        <div class="qa-ico"><i class="fa fa-money"></i></div>
+                        <span class="qa-lbl">Payroll Report</span>
+                    </a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-sm-ph btn-sm-def" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="db-toast"></div>
+
+
+@section Scripts {
+    <script>
+/* ── Toast ── */
+function toast(msg, type) {
+    var el = document.getElementById('db-toast');
+    el.style.background = type === 'success' ? '#27ae60' : '#e74c3c';
+    el.innerHTML = '<i class="fa fa-' + (type==='success'?'check-circle':'times-circle') + '"></i> ' + msg;
+    el.style.display = 'flex';
+    setTimeout(function(){ el.style.display='none'; }, 3800);
+}
+function showErr(id, msg) {
+    var el = document.getElementById(id);
+    el.innerHTML = '<i class="fa fa-exclamation-circle"></i> ' + msg;
+    el.style.display = 'flex';
+    setTimeout(function(){ el.style.display='none'; }, 4500);
+}
+
+/* ── Load Patients & Doctors for dropdowns ── */
+$(document).ready(function() {
+    // Set today as default appointment date
+    $('#appt-date').val(new Date().toISOString().split('T')[0]);
+
+    // Load patients dropdown
+    $.getJSON('@Url.Action("GetPatients","Appointment")', function(d) {
+        if (!d) return;
+        var o = '<option value="0">-- Select Patient --</option>';
+        $.each(d, function(i, p) { o += '<option value="'+p.Id+'">'+p.Name+'</option>'; });
+        $('#appt-patient').html(o);
+    }).fail(function(){
+        // silently fail if endpoint doesn't exist
+    });
+
+    // Load doctors dropdown
+    $.getJSON('@Url.Action("GetDoctors","Appointment")', function(d) {
+        if (!d) return;
+        var o = '<option value="0">-- Select Doctor --</option>';
+        $.each(d, function(i, p) { o += '<option value="'+p.Id+'">'+p.Name+'</option>'; });
+        $('#appt-doctor').html(o);
+    }).fail(function(){});
+});
+
+/* ── Save Patient (quick register) ── */
+function savePatient() {
+    var name  = $.trim($('#pat-name').val());
+    var phone = $.trim($('#pat-phone').val());
+    if (!name)  { showErr('pat-alert','Full name is required!'); return; }
+    if (!phone) { showErr('pat-alert','Phone number is required!'); return; }
+
+    var data = {
+        FullName:    name,
+        Phone:       phone,
+        Age:         parseInt($('#pat-age').val()) || 0,
+        Gender:      $('#pat-gender').val(),
+        PatientType: $('#pat-type').val(),
+        Address:     $.trim($('#pat-addr').val()),
+        CNIC:        $.trim($('#pat-cnic').val()),
+        RegistrationDate: new Date().toISOString().split('T')[0]
+    };
+
+    $.post('@Url.Action("QuickCreate","Patient")', data, function(r) {
+        if (r && r.success) {
+            $('#modal-patient').modal('hide');
+            toast('Patient "' + name + '" registered! ID: P-' + String(r.id).padStart(4,'0'), 'success');
+            setTimeout(function(){ location.reload(); }, 2200);
+        } else {
+            showErr('pat-alert', (r && r.message) ? r.message : 'Error saving patient. Please try again.');
+        }
+    }).fail(function(){
+        showErr('pat-alert','Server error. Please use the Full Form.');
+    });
+}
+
+/* ── Save Appointment (quick book) ── */
+function saveAppointment() {
+    var patId  = parseInt($('#appt-patient').val()) || 0;
+    var docId  = parseInt($('#appt-doctor').val())  || 0;
+    var date   = $('#appt-date').val();
+    if (!patId) { showErr('appt-alert','Please select a patient!'); return; }
+    if (!docId) { showErr('appt-alert','Please select a doctor!'); return; }
+    if (!date)  { showErr('appt-alert','Please select a date!'); return; }
+
+    var data = {
+        PatientId:       patId,
+        DoctorId:        docId,
+        AppointmentDate: date,
+        TimeSlot:        $('#appt-time').val(),
+        Status:          $('#appt-status').val(),
+        Remarks:         $.trim($('#appt-notes').val())
+    };
+
+    $.post('@Url.Action("QuickCreate","Appointment")', data, function(r) {
+        if (r && r.success) {
+            $('#modal-appt').modal('hide');
+            toast('Appointment booked successfully!', 'success');
+            setTimeout(function(){ location.reload(); }, 2200);
+        } else {
+            showErr('appt-alert', (r && r.message) ? r.message : 'Error booking appointment.');
+        }
+    }).fail(function(){
+        showErr('appt-alert','Server error. Please use the Full Form.');
+    });
+}
+    </script>
+}

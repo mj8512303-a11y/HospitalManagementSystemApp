@@ -1,0 +1,178 @@
+@model HospitalMS.Models.Staff
+@{
+    ViewBag.Title = "Edit Staff Member";
+    ViewBag.ActiveMenu = "Staff";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-pencil"></i> Edit Staff Member</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Staff</a></li>
+        <li class="active">Edit</li>
+    </ol>
+</div>
+
+@using (Html.BeginForm("Edit","Staff",FormMethod.Post,new{enctype="multipart/form-data"})) {
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m=>m.Id)
+    @Html.HiddenFor(m=>m.CreatedAt)
+    @Html.HiddenFor(m=>m.PhotoPath)
+    @Html.HiddenFor(m=>m.DocumentPath)
+
+    <div class="card-box">
+        <div class="card-title"><i class="fa fa-user"></i> Personal Information</div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.FullName,new{@class="control-label"}) <span class="text-danger">*</span>
+                    @Html.TextBoxFor(m=>m.FullName,new{@class="form-control"})
+                    @Html.ValidationMessageFor(m=>m.FullName,"",new{@class="text-danger"})
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.CNIC,new{@class="control-label"})
+                    @Html.TextBoxFor(m=>m.CNIC,new{@class="form-control",maxlength="15"})
+                    @Html.ValidationMessageFor(m=>m.CNIC,"",new{@class="text-danger"})
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="control-label">Gender</label>
+                    @Html.DropDownListFor(m=>m.Gender,new SelectList(new[]{"Male","Female","Other"},Model.Gender),"-- Select --",new{@class="form-control"})
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.DateOfBirth,new{@class="control-label"})
+                    @Html.TextBoxFor(m=>m.DateOfBirth,"{0:yyyy-MM-dd}",new{@class="form-control",type="date"})
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.Phone,new{@class="control-label"})
+                    @Html.TextBoxFor(m=>m.Phone,new{@class="form-control"})
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.Email,new{@class="control-label"})
+                    @Html.TextBoxFor(m=>m.Email,new{@class="form-control"})
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.Address,new{@class="control-label"})
+                    @Html.TextAreaFor(m=>m.Address,2,0,new{@class="form-control"})
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-box">
+        <div class="card-title"><i class="fa fa-briefcase"></i> Job Information</div>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="control-label">Branch</label>
+                    @Html.DropDownList("BranchId",(SelectList)ViewBag.BranchId,"-- Select --",new{@class="form-control"})
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="control-label">Department</label>
+                    @Html.DropDownList("DepartmentId",(SelectList)ViewBag.DepartmentId,"-- Select --",new{@class="form-control"})
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="control-label">Designation</label>
+                    @Html.DropDownList("DesignationId",(SelectList)ViewBag.DesignationId,"-- Select --",new{@class="form-control"})
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="control-label">Shift</label>
+                    @Html.DropDownList("ShiftId",(SelectList)ViewBag.ShiftId,"-- Select --",new{@class="form-control"})
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.JoinDate,new{@class="control-label"})
+                    @Html.TextBoxFor(m=>m.JoinDate,"{0:yyyy-MM-dd}",new{@class="form-control",type="date"})
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="control-label">Status</label>
+                    @Html.DropDownListFor(m=>m.Status,new SelectList(new[]{"Active","OnLeave","Terminated"},Model.Status),new{@class="form-control"})
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-box">
+        <div class="card-title"><i class="fa fa-paperclip"></i> Update Photo & Document <small class="text-muted">(Leave empty to keep existing)</small></div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="control-label">Change Photo</label>
+                    <input type="file" name="photoFile" class="form-control" accept=".jpg,.jpeg,.png" onchange="previewImg(this)" />
+                    <div style="margin-top:10px;text-align:center">
+                        @if (!string.IsNullOrEmpty(Model.PhotoPath))
+                        {
+                            <img id="imgPreview" src="@Model.PhotoPath" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #2980b9" />
+                            <br/><small class="text-muted">Current Photo</small>
+                        }
+                        else
+                        {
+                            <img id="imgPreview" src="#" style="display:none;width:80px;height:80px;border-radius:50%;object-fit:cover" />
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="control-label">Change Document</label>
+                    <input type="file" name="docFile" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
+                    @if (!string.IsNullOrEmpty(Model.DocumentPath))
+                    {
+                        <div style="margin-top:8px">
+                            <a href="@Model.DocumentPath" target="_blank" class="btn btn-default btn-xs">
+                                <i class="fa fa-file"></i> View Current Document
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-box">
+        <button type="submit" class="btn btn-primary btn-lg"><i class="fa fa-save"></i> Update Staff Member</button>
+        <a href="@Url.Action("Index")" class="btn btn-default btn-lg"><i class="fa fa-arrow-left"></i> Back</a>
+    </div>
+}
+
+@section Scripts {
+<script>
+    function previewImg(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var img = document.getElementById("imgPreview");
+                img.src = e.target.result;
+                img.style.display = "block";
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+}

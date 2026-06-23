@@ -1,0 +1,136 @@
+@model IEnumerable<HospitalMS.Models.Designation>
+@{
+    ViewBag.Title = "Designation Management";
+    ViewBag.ActiveMenu = "Designation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header-box">
+    <h3><i class="fa fa-id-badge"></i> Designation Management</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li class="active">Designation</li>
+    </ol>
+</div>
+
+<!-- Stats -->
+<div class="row">
+    <div class="col-md-4">
+        <div class="stat-card stat-blue">
+            <div><div class="stat-number">@ViewBag.TotalDesig</div><div class="stat-label">Total Designations</div></div>
+            <i class="fa fa-id-badge stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card stat-green">
+            <div><div class="stat-number">@ViewBag.ActiveDesig</div><div class="stat-label">Active</div></div>
+            <i class="fa fa-check-circle stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card stat-red">
+            <div><div class="stat-number">@ViewBag.InactiveDesig</div><div class="stat-label">Inactive</div></div>
+            <i class="fa fa-times-circle stat-icon"></i>
+        </div>
+    </div>
+</div>
+
+<div class="card-box">
+    <div class="card-title">
+        <i class="fa fa-list"></i> All Designations
+        <a href="@Url.Action("Create")" class="btn btn-primary btn-sm pull-right">
+            <i class="fa fa-plus"></i> Add Designation
+        </a>
+    </div>
+
+    <div class="row" style="margin-bottom:15px">
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                <input type="text" id="searchInput" class="form-control" placeholder="Search designation..." />
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped" id="desigTable">
+            <thead>
+                <tr>
+                    <th style="width:50px">#</th>
+                    <th>Designation Name</th>
+                    <th>Basic Salary</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th style="width:160px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int sr = 1; }
+                @foreach (var d in Model)
+                {
+                    <tr>
+                        <td>@(sr++)</td>
+                        <td>
+                            <strong><i class="fa fa-id-badge text-primary"></i> @d.Name</strong>
+                        </td>
+                        <td>
+                            <span style="color:#27ae60;font-weight:600">
+                                <i class="fa fa-money"></i> Rs. @d.BasicSalary.ToString("N0")
+                            </span>
+                        </td>
+                        <td>@(string.IsNullOrEmpty(d.Description) ? "-" : d.Description)</td>
+                        <td>
+                            @if (d.IsActive)
+                            { <span class="badge-active">Active</span> }
+                            else
+                            { <span class="badge-inactive">Inactive</span> }
+                        </td>
+                        <td>
+                            <a href="@Url.Action("Details", new { id = d.Id })"
+                               class="btn btn-info btn-sm" title="View Details">
+                                <i class="fa fa-eye"></i>
+                            </a>
+                            <a href="@Url.Action("Edit", new { id = d.Id })"
+                               class="btn btn-warning btn-sm" title="Edit">
+                                <i class="fa fa-pencil"></i>
+                            </a>
+                            <a href="@Url.Action("ToggleStatus", new { id = d.Id })"
+                               class="btn btn-@(d.IsActive ? "default" : "success") btn-sm"
+                               title="@(d.IsActive ? "Deactivate" : "Activate")">
+                                <i class="fa fa-@(d.IsActive ? "toggle-off" : "toggle-on")"></i>
+                            </a>
+                            <a href="@Url.Action("Delete", new { id = d.Id })"
+                               class="btn btn-danger btn-sm" title="Delete"
+                               onclick="return confirm('Delete designation: @d.Name ?')">
+                                <i class="fa fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted" style="padding:40px">
+                            <i class="fa fa-id-badge" style="font-size:45px;opacity:0.25"></i>
+                            <p style="margin-top:12px;font-size:15px">No designations found.</p>
+                            <a href="@Url.Action("Create")" class="btn btn-primary">
+                                <i class="fa fa-plus"></i> Add First Designation
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    $("#searchInput").on("keyup", function () {
+        var val = $(this).val().toLowerCase();
+        $("#desigTable tbody tr").each(function () {
+            $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
+        });
+    });
+</script>
+}

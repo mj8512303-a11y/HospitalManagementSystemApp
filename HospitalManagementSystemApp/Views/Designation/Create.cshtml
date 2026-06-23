@@ -1,0 +1,76 @@
+@model HospitalMS.Models.Designation
+@{
+    ViewBag.Title = "Add Designation";
+    ViewBag.ActiveMenu = "Designation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header-box">
+    <h3><i class="fa fa-plus-circle"></i> Add New Designation</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Designation</a></li>
+        <li class="active">Add</li>
+    </ol>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-id-badge"></i> Designation Information</div>
+            @using (Html.BeginForm("Create", "Designation", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Name, new { @class = "control-label" })
+                    <span class="text-danger">*</span>
+                    @Html.TextBoxFor(m => m.Name, new { @class = "form-control", placeholder = "e.g. Senior Doctor, Head Nurse, Lab Technician" })
+                    @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(m => m.BasicSalary, new { @class = "control-label" })
+                    <div class="input-group">
+                        <span class="input-group-addon">Rs.</span>
+                        @Html.TextBoxFor(m => m.BasicSalary, new { @class = "form-control", placeholder = "0", type = "number", min = "0", step = "100" })
+                    </div>
+                    @Html.ValidationMessageFor(m => m.BasicSalary, "", new { @class = "text-danger" })
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Description, new { @class = "control-label" })
+                    @Html.TextAreaFor(m => m.Description, 4, 0, new { @class = "form-control", placeholder = "Brief description of this designation and its responsibilities..." })
+                </div>
+                <div class="form-group">
+                    <div class="checkbox">
+                        <label>
+                            @Html.CheckBoxFor(m => m.IsActive)
+                            <strong>Is Active</strong>
+                            <small class="text-muted">(Inactive designations won't appear in staff forms)</small>
+                        </label>
+                    </div>
+                </div>
+                <hr />
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa fa-save"></i> Save Designation
+                </button>
+                <a href="@Url.Action("Index")" class="btn btn-default">
+                    <i class="fa fa-arrow-left"></i> Back to List
+                </a>
+            }
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-info-circle"></i> Quick Guide</div>
+            <ul class="list-unstyled" style="font-size:13px;line-height:2">
+                <li><i class="fa fa-check text-success"></i> Designation name must be unique</li>
+                <li><i class="fa fa-check text-success"></i> Basic salary is the default starting salary</li>
+                <li><i class="fa fa-check text-success"></i> Only active designations appear in staff form</li>
+                <li><i class="fa fa-check text-success"></i> You can edit or deactivate anytime</li>
+            </ul>
+            <hr />
+            <p class="text-muted" style="font-size:12px">
+                <strong>Examples:</strong> Senior Doctor, Junior Doctor, Head Nurse, Staff Nurse, Lab Technician, Pharmacist, Receptionist, Admin Officer
+            </p>
+        </div>
+    </div>
+</div>

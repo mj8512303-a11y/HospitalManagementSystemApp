@@ -1,0 +1,91 @@
+@{
+    ViewBag.Title = "Generate Monthly Salaries";
+    ViewBag.ActiveMenu = "Salary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-magic"></i> Generate Monthly Salaries</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Salary</a></li>
+        <li class="active">Generate</li>
+    </ol>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-cogs"></i> Generation Settings</div>
+            @using (Html.BeginForm("Generate","Salary",FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label">Month <span class="text-danger">*</span></label>
+                            <select name="month" class="form-control">
+                                @for (int i=1;i<=12;i++){
+                                    <option value="@i" @(ViewBag.Month==i?"selected":"")>@(new DateTime(2024,i,1).ToString("MMMM"))</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label">Year <span class="text-danger">*</span></label>
+                            <select name="year" class="form-control">
+                                @for (int y=2023;y<=DateTime.Now.Year+1;y++){
+                                    <option value="@y" @(ViewBag.Year==y?"selected":"")>@y</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label">Generate For <span class="text-danger">*</span></label>
+                    <select name="empType" class="form-control">
+                        <option value="Both">Both Staff & Doctors</option>
+                        <option value="Staff">Staff Only</option>
+                        <option value="Doctor">Doctors Only</option>
+                    </select>
+                </div>
+                <div class="alert alert-info" style="font-size:13px">
+                    <i class="fa fa-info-circle"></i> <strong>How it works:</strong>
+                    <ul style="margin:6px 0 0 18px">
+                        <li>System will create a salary record for every active employee</li>
+                        <li>Basic salary is pulled from designation settings</li>
+                        <li>Attendance for the selected month is used to calculate deductions</li>
+                        <li>Absent days deduct (Basic Salary ÷ 30) per day</li>
+                        <li>Existing records for the same month won't be duplicated</li>
+                        <li>You can edit allowances, bonus, and deductions afterward</li>
+                    </ul>
+                </div>
+                <hr />
+                <button type="submit" class="btn btn-primary btn-lg"><i class="fa fa-magic"></i> Generate Salaries</button>
+                <a href="@Url.Action("Index")" class="btn btn-default btn-lg"><i class="fa fa-arrow-left"></i> Back</a>
+            }
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-lightbulb-o"></i> Calculation Formula</div>
+            <div style="background:#f8f9fa;border-radius:8px;padding:15px;font-size:13px;line-height:2">
+                <strong>Net Salary =</strong><br/>
+                Basic Salary<br/>
+                + Allowances<br/>
+                + Bonus<br/>
+                + Overtime<br/>
+                − Deductions (Absent days)
+            </div>
+            <hr />
+            <p style="font-size:13px"><strong>Example:</strong></p>
+            <table class="table table-bordered" style="font-size:13px">
+                <tr><td>Basic Salary</td><td class="text-right">Rs. 30,000</td></tr>
+                <tr><td>Per Day Rate (÷30)</td><td class="text-right">Rs. 1,000</td></tr>
+                <tr><td>Absent Days</td><td class="text-right">2 days</td></tr>
+                <tr><td>Deduction</td><td class="text-right text-danger">- Rs. 2,000</td></tr>
+                <tr style="background:#eaf4fb"><td><strong>Net Salary</strong></td><td class="text-right"><strong>Rs. 28,000</strong></td></tr>
+            </table>
+        </div>
+    </div>
+</div>

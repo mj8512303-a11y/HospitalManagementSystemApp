@@ -1,0 +1,694 @@
+<!--@model IEnumerable<HospitalMS.Models.Attendance>
+@{
+    ViewBag.Title = "Attendance Management";
+    ViewBag.ActiveMenu = "Attendance";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-calendar-check-o"></i> Attendance Management — <span style="color:#2980b9">@ViewBag.DisplayDate</span></h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li class="active">Attendance</li>
+    </ol>
+</div>-->
+<!-- Quick Action Buttons -->
+<!--<div class="row" style="margin-bottom:15px">
+    <div class="col-md-12">
+        <a href="@Url.Action("BiometricTerminal")" class="btn btn-success btn-lg" style="margin-right:8px">
+            <i class="fa fa-fingerprint"></i> Biometric Terminal
+        </a>
+        <a href="@Url.Action("BulkMark")" class="btn btn-primary btn-lg" style="margin-right:8px">
+            <i class="fa fa-users"></i> Bulk Mark Attendance
+        </a>
+        <a href="@Url.Action("ImportCSV")" class="btn btn-warning btn-lg" style="margin-right:8px">
+            <i class="fa fa-upload"></i> Import from Machine (CSV)
+        </a>
+        <a href="@Url.Action("Report")" class="btn btn-info btn-lg">
+            <i class="fa fa-bar-chart"></i> Monthly Report
+        </a>
+    </div>
+</div>-->
+<!-- Stats -->
+<!--<div class="row">
+    <div class="col-md-2">
+        <div class="stat-card stat-green"><div><div class="stat-number">@ViewBag.TotalPresent</div><div class="stat-label">Present</div></div><i class="fa fa-check-circle stat-icon"></i></div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-red"><div><div class="stat-number">@ViewBag.TotalAbsent</div><div class="stat-label">Absent</div></div><i class="fa fa-times-circle stat-icon"></i></div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-orange"><div><div class="stat-number">@ViewBag.TotalLate</div><div class="stat-label">Late</div></div><i class="fa fa-clock-o stat-icon"></i></div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-purple"><div><div class="stat-number">@ViewBag.TotalHalfDay</div><div class="stat-label">Half Day</div></div><i class="fa fa-adjust stat-icon"></i></div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-blue"><div><div class="stat-number">@ViewBag.TotalLeave</div><div class="stat-label">On Leave</div></div><i class="fa fa-calendar-minus-o stat-icon"></i></div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card" style="background:linear-gradient(135deg,#555,#888)">
+            <div><div class="stat-number">@Model.Count()</div><div class="stat-label">Total Records</div></div>
+            <i class="fa fa-list stat-icon"></i>
+        </div>
+    </div>
+</div>
+
+<div class="card-box">
+    <div class="card-title"><i class="fa fa-list"></i> Attendance Records</div>
+    @using (Html.BeginForm("Index","Attendance",FormMethod.Get)) {
+        <div class="row" style="margin-bottom:15px">
+            <div class="col-md-3">
+                <label class="control-label" style="font-size:12px">Select Date</label>
+                <input type="date" name="date" value="@ViewBag.SelectedDate" class="form-control" />
+            </div>
+            <div class="col-md-2">
+                <label class="control-label" style="font-size:12px">Employee Type</label>
+                <select name="empType" class="form-control">
+                    <option value="">-- All --</option>
+                    <option value="Staff"  @(ViewBag.EmpTypeVal=="Staff"?"selected":"")>Staff</option>
+                    <option value="Doctor" @(ViewBag.EmpTypeVal=="Doctor"?"selected":"")>Doctor</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="control-label" style="font-size:12px">Status</label>
+                <select name="status" class="form-control">
+                    <option value="">-- All --</option>
+                    <option value="Present"  @(ViewBag.StatusVal=="Present"?"selected":"")>Present</option>
+                    <option value="Absent"   @(ViewBag.StatusVal=="Absent"?"selected":"")>Absent</option>
+                    <option value="Late"     @(ViewBag.StatusVal=="Late"?"selected":"")>Late</option>
+                    <option value="HalfDay"  @(ViewBag.StatusVal=="HalfDay"?"selected":"")>Half Day</option>
+                    <option value="Leave"    @(ViewBag.StatusVal=="Leave"?"selected":"")>Leave</option>
+                </select>
+            </div>
+            <div class="col-md-3" style="margin-top:20px">
+                <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Filter</button>
+                <a href="@Url.Action("Index")" class="btn btn-default"><i class="fa fa-refresh"></i> Today</a>
+            </div>
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>#</th><th>Employee ID</th><th>Type</th>
+                    <th>In Time</th><th>Out Time</th><th>Working Hours</th>
+                    <th>Status</th><th>Marked By</th><th>Remarks</th>
+                    <th style="width:80px">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int sr = 1; }
+                @foreach (var a in Model)
+                {
+                    string worked = "-";
+                    if (a.InTime.HasValue && a.OutTime.HasValue)
+                    {
+                        var dur = a.OutTime.Value - a.InTime.Value;
+                        worked = dur.Hours + "h " + dur.Minutes + "m";
+                    }
+                    <tr>
+                        <td>@(sr++)</td>
+                        <td>
+                            <span style="background:#eaf4fb;color:#2980b9;padding:2px 8px;border-radius:8px;font-weight:700;font-size:12px">
+                                @(a.EmployeeType == "Staff" ? "STF" : "DOC")-@a.EmployeeId.ToString("D3")
+                            </span>
+                        </td>
+                        <td>
+                            @if (a.EmployeeType == "Staff")
+                            { <span class="label label-primary">Staff</span> }
+                            else
+                            { <span class="label label-success">Doctor</span> }
+                        </td>
+                        <td>@(a.InTime.HasValue ? DateTime.Today.Add(a.InTime.Value).ToString("hh:mm tt") : "-")</td>
+                        <td>@(a.OutTime.HasValue ? DateTime.Today.Add(a.OutTime.Value).ToString("hh:mm tt") : "-")</td>
+                        <td><i class="fa fa-hourglass-half text-warning"></i> @worked</td>
+                        <td>
+                            @if (a.Status == "Present")      { <span class="badge-active">Present</span> }
+                            else if (a.Status == "Absent")   { <span class="badge-inactive">Absent</span> }
+                            else if (a.Status == "Late")     { <span class="badge-pending">Late</span> }
+                            else if (a.Status == "HalfDay")  { <span class="label label-warning" style="padding:4px 8px">Half Day</span> }
+                            else                              { <span class="label label-info" style="padding:4px 8px">Leave</span> }
+                        </td>
+                        <td><small>@a.MarkedBy</small></td>
+                        <td><small>@a.Remarks</small></td>
+                        <td>
+                            <a href="@Url.Action("Delete",new{id=a.Id})" class="btn btn-danger btn-xs"
+                               onclick="return confirm('Delete this record?')"><i class="fa fa-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {<tr><td colspan="10" class="text-center text-muted" style="padding:40px">
+                    <i class="fa fa-calendar-times-o" style="font-size:45px;opacity:0.25"></i>
+                    <p style="margin-top:12px">No attendance records for @ViewBag.DisplayDate</p>
+                    <a href="@Url.Action("BulkMark")" class="btn btn-primary"><i class="fa fa-users"></i> Mark Attendance Now</a>
+                </td></tr>}
+            </tbody>
+        </table>
+    </div>
+</div>-->
+
+@{
+    ViewBag.Title = "Attendance Management";
+    ViewBag.ActiveMenu = "Attendance";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* ── Page Header ── */
+    .att-header {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+    }
+    .att-header-left { display: flex; align-items: center; gap: 13px; }
+    .att-page-icon {
+        width: 44px; height: 44px; border-radius: 11px;
+        background: linear-gradient(135deg,#16a34a,#22c55e);
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(22,163,74,.25);
+    }
+    .att-page-icon i { color: #fff; font-size: 18px; }
+    .att-header-left h3 { margin: 0; font-size: 18px; font-weight: 700; color: #0f172a; letter-spacing: -.3px; }
+    .att-date-badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: #eff6ff; color: #2563eb;
+        border: 1px solid #dbeafe;
+        padding: 3px 11px; border-radius: 20px;
+        font-size: 12px; font-weight: 700;
+        margin-left: 10px;
+    }
+    .att-breadcrumb { font-size: 11.5px; color: #94a3b8; margin-top: 2px; }
+    .att-breadcrumb a { color: #2563eb; text-decoration: none; }
+
+    /* ── Quick Action Buttons ── */
+    .att-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .att-act-btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 18px; border-radius: 10px;
+        font-size: 13px; font-weight: 600;
+        text-decoration: none; border: none; cursor: pointer;
+        transition: all .15s; flex: 1; min-width: 160px;
+        justify-content: center;
+    }
+    .att-act-btn .act-icon {
+        width: 32px; height: 32px; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px; flex-shrink: 0;
+        background: rgba(255,255,255,0.2);
+    }
+    .att-act-btn .act-text { line-height: 1.2; text-align: left; }
+    .att-act-btn .act-text small { display: block; font-size: 10px; font-weight: 400; opacity: .8; }
+    .aab-bio    { background: linear-gradient(135deg,#16a34a,#22c55e); color:#fff; box-shadow: 0 4px 14px rgba(22,163,74,.25); }
+    .aab-bulk   { background: linear-gradient(135deg,#2563eb,#3b82f6); color:#fff; box-shadow: 0 4px 14px rgba(37,99,235,.25); }
+    .aab-import { background: linear-gradient(135deg,#d97706,#f59e0b); color:#fff; box-shadow: 0 4px 14px rgba(217,119,6,.25); }
+    .aab-report { background: linear-gradient(135deg,#0891b2,#06b6d4); color:#fff; box-shadow: 0 4px 14px rgba(8,145,178,.25); }
+    .att-act-btn:hover { opacity: .88; text-decoration: none; color: #fff; transform: translateY(-1px); }
+
+    /* ── Stat Cards ── */
+    .att-stats { display: grid; grid-template-columns: repeat(6,1fr); gap: 12px; margin-bottom: 20px; }
+    .att-stat {
+        background: #fff; border: 1px solid #e8ecf0;
+        border-radius: 12px; padding: 14px;
+        display: flex; flex-direction: column; gap: 10px;
+        border-top: 3px solid transparent;
+        transition: box-shadow .15s;
+        position: relative; overflow: hidden;
+    }
+    .att-stat:hover { box-shadow: 0 4px 18px rgba(0,0,0,.08); }
+    .att-stat-top { display: flex; align-items: center; justify-content: space-between; }
+    .att-stat-ic {
+        width: 36px; height: 36px; border-radius: 9px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 15px;
+    }
+    .att-stat-val { font-size: 28px; font-weight: 800; color: #0f172a; line-height: 1; letter-spacing: -1px; }
+    .att-stat-lbl { font-size: 10.5px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .6px; }
+    /* Circular progress ring (decorative) */
+    .att-stat::after {
+        content: ''; position: absolute;
+        right: -14px; bottom: -14px;
+        width: 60px; height: 60px;
+        border-radius: 50%;
+        border: 8px solid transparent;
+        opacity: .08;
+    }
+    .s-present { border-top-color: #16a34a; } .s-present .att-stat-ic { background:#f0fdf4; color:#16a34a; } .s-present::after { border-color:#16a34a; }
+    .s-absent  { border-top-color: #ef4444; } .s-absent  .att-stat-ic { background:#fef2f2; color:#ef4444; } .s-absent::after  { border-color:#ef4444; }
+    .s-late    { border-top-color: #d97706; } .s-late    .att-stat-ic { background:#fffbeb; color:#d97706; } .s-late::after    { border-color:#d97706; }
+    .s-half    { border-top-color: #7c3aed; } .s-half    .att-stat-ic { background:#f5f3ff; color:#7c3aed; } .s-half::after    { border-color:#7c3aed; }
+    .s-leave   { border-top-color: #2563eb; } .s-leave   .att-stat-ic { background:#eff6ff; color:#2563eb; } .s-leave::after   { border-color:#2563eb; }
+    .s-total   { border-top-color: #475569; } .s-total   .att-stat-ic { background:#f8fafc; color:#475569; } .s-total::after   { border-color:#475569; }
+
+    /* ── Main Card ── */
+    .att-card { background:#fff; border-radius:14px; border:1px solid #e8ecf0; overflow:hidden; }
+    .att-card-hd {
+        display:flex; align-items:center; justify-content:space-between;
+        padding:14px 20px; border-bottom:1px solid #f1f5f9; background:#fafbfd;
+        flex-wrap:wrap; gap:10px;
+    }
+    .att-card-hd-left { display:flex; align-items:center; gap:8px; }
+    .att-card-hd-left i { color:#16a34a; font-size:15px; }
+    .att-card-hd-left span { font-size:14px; font-weight:700; color:#0f172a; }
+
+    /* ── Filter Bar ── */
+    .att-filters {
+        padding:14px 20px; background:#fff;
+        border-bottom:1px solid #f1f5f9;
+        display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap;
+    }
+    .att-filter-group { display:flex; flex-direction:column; gap:5px; }
+    .att-filter-group label { font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.5px; }
+    .att-filter-input {
+        height:36px; padding:0 12px;
+        border:1px solid #e2e8f0; border-radius:8px;
+        font-size:12.5px; color:#1e293b;
+        background:#fff; font-family:inherit; outline:none;
+        transition:border .14s, box-shadow .14s;
+        min-width:140px;
+    }
+    .att-filter-input:focus { border-color:#93c5fd; box-shadow:0 0 0 3px rgba(37,99,235,.1); }
+    .att-filter-btns { display:flex; gap:8px; margin-left:auto; align-items:flex-end; }
+    .f-btn {
+        height:36px; padding:0 14px; border-radius:8px;
+        font-size:12.5px; font-weight:600; cursor:pointer;
+        display:inline-flex; align-items:center; gap:6px;
+        border:none; text-decoration:none; transition:.14s;
+    }
+    .f-btn.primary { background:#2563eb; color:#fff; }
+    .f-btn.primary:hover { background:#1d4ed8; color:#fff; }
+    .f-btn.default { background:#fff; color:#475569; border:1px solid #e2e8f0; }
+    .f-btn.default:hover { background:#f8fafc; color:#1e293b; }
+
+    /* ── Table ── */
+    .att-tbl { width:100%; border-collapse:collapse; }
+    .att-tbl thead th {
+        background:#fafafa; color:#94a3b8;
+        font-size:10.5px; font-weight:700; text-transform:uppercase;
+        letter-spacing:.7px; padding:11px 16px;
+        text-align:left; border-bottom:1px solid #f1f5f9;
+        white-space:nowrap;
+    }
+    .att-tbl tbody tr { border-bottom:1px solid #f8f9fb; transition:background .12s; }
+    .att-tbl tbody tr:hover { background:#fafbfd; }
+    .att-tbl tbody td { padding:12px 16px; color:#475569; vertical-align:middle; }
+    .row-num { color:#cbd5e1; font-weight:700; font-size:12px; }
+
+    /* EMP ID chip */
+    .emp-id-chip {
+        display:inline-flex; align-items:center; gap:4px;
+        padding:3px 10px; border-radius:20px;
+        font-size:11.5px; font-weight:700; white-space:nowrap;
+    }
+    .chip-staff  { background:#eff6ff; color:#2563eb; border:1px solid #dbeafe; }
+    .chip-doctor { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
+
+    /* Type badge */
+    .type-badge {
+        display:inline-flex; align-items:center; gap:5px;
+        padding:4px 10px; border-radius:20px;
+        font-size:11px; font-weight:700;
+    }
+    .type-staff  { background:#eff6ff; color:#2563eb; border:1px solid #dbeafe; }
+    .type-doctor { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
+
+    /* Time cells */
+    .time-cell { display:flex; align-items:center; gap:6px; }
+    .time-val { font-weight:600; color:#1e293b; font-size:13px; }
+    .time-na  { color:#cbd5e1; font-size:13px; }
+
+    /* Working hours */
+    .hours-cell { display:inline-flex; align-items:center; gap:5px; }
+    .hours-pill {
+        display:inline-flex; align-items:center; gap:5px;
+        background:#fffbeb; color:#d97706;
+        border:1px solid #fde68a;
+        padding:3px 10px; border-radius:20px;
+        font-size:11.5px; font-weight:700;
+    }
+    .hours-pill.full  { background:#f0fdf4; color:#16a34a; border-color:#bbf7d0; }
+    .hours-pill.none  { background:#f8fafc; color:#94a3b8; border-color:#e2e8f0; }
+
+    /* Status badges */
+    .s-badge {
+        display:inline-flex; align-items:center; gap:5px;
+        padding:4px 11px; border-radius:20px;
+        font-size:11.5px; font-weight:700;
+    }
+    .s-badge i { font-size:7px; }
+    .sb-present  { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
+    .sb-absent   { background:#fef2f2; color:#ef4444; border:1px solid #fecaca; }
+    .sb-late     { background:#fffbeb; color:#d97706; border:1px solid #fde68a; }
+    .sb-halfday  { background:#f5f3ff; color:#7c3aed; border:1px solid #e9d5ff; }
+    .sb-leave    { background:#eff6ff; color:#2563eb; border:1px solid #dbeafe; }
+
+    /* Marked by */
+    .marked-by { font-size:12px; color:#64748b; display:flex; align-items:center; gap:4px; }
+    .marked-by i { color:#cbd5e1; font-size:11px; }
+
+    /* Remarks */
+    .remark-txt { font-size:12px; color:#94a3b8; font-style:italic; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+    /* Delete btn */
+    .del-btn {
+        width:30px; height:30px; border-radius:7px;
+        background:#fef2f2; color:#ef4444;
+        display:flex; align-items:center; justify-content:center;
+        font-size:12.5px; border:none; cursor:pointer;
+        transition:.14s; text-decoration:none;
+    }
+    .del-btn:hover { background:#ef4444; color:#fff; }
+
+    /* Empty state */
+    .att-empty { text-align:center; padding:60px 20px; }
+    .att-empty-icon {
+        width:72px; height:72px; border-radius:50%;
+        background:#f0fdf4; margin:0 auto 18px;
+        display:flex; align-items:center; justify-content:center;
+    }
+    .att-empty-icon i { font-size:30px; color:#86efac; }
+    .att-empty h5 { font-size:16px; font-weight:700; color:#64748b; margin:0 0 6px; }
+    .att-empty p  { font-size:13px; color:#94a3b8; }
+    .att-bulk-btn {
+        display:inline-flex; align-items:center; gap:7px;
+        background:#2563eb; color:#fff; border:none;
+        border-radius:8px; padding:9px 18px;
+        font-size:13px; font-weight:600;
+        text-decoration:none; margin-top:12px;
+        transition:background .15s;
+    }
+    .att-bulk-btn:hover { background:#1d4ed8; color:#fff; text-decoration:none; }
+
+    @@media(max-width:1100px){ .att-stats { grid-template-columns:repeat(3,1fr); } }
+    @@media(max-width:700px) { .att-stats { grid-template-columns:repeat(2,1fr); } .att-actions { flex-direction:column; } }
+</style>
+
+<!-- ── Page Header ── -->
+<div class="att-header">
+    <div class="att-header-left">
+        <div class="att-page-icon"><i class="fa fa-calendar-check-o"></i></div>
+        <div>
+            <h3>
+                Attendance Management
+                <span class="att-date-badge">
+                    <i class="fa fa-calendar" style="font-size:10px"></i>
+                    @ViewBag.DisplayDate
+                </span>
+            </h3>
+            <div class="att-breadcrumb">
+                <a href="@Url.Action("Index","Home")"><i class="fa fa-home"></i> Dashboard</a>
+                &rsaquo; Attendance
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Quick Action Buttons ── -->
+<div class="att-actions">
+    <a href="@Url.Action("BiometricTerminal")" class="att-act-btn aab-bio">
+        <div class="act-icon"><i class="fa fa-hand-o-up"></i></div>
+        <div class="act-text">
+            Biometric Terminal
+            <small>Finger scan entry</small>
+        </div>
+    </a>
+    <a href="@Url.Action("BulkMark")" class="att-act-btn aab-bulk">
+        <div class="act-icon"><i class="fa fa-users"></i></div>
+        <div class="act-text">
+            Bulk Mark Attendance
+            <small>Mark all at once</small>
+        </div>
+    </a>
+    <a href="@Url.Action("ImportCSV")" class="att-act-btn aab-import">
+        <div class="act-icon"><i class="fa fa-upload"></i></div>
+        <div class="act-text">
+            Import from Machine
+            <small>Upload CSV file</small>
+        </div>
+    </a>
+    <a href="@Url.Action("Report")" class="att-act-btn aab-report">
+        <div class="act-icon"><i class="fa fa-bar-chart"></i></div>
+        <div class="act-text">
+            Monthly Report
+            <small>View full report</small>
+        </div>
+    </a>
+</div>
+
+<!-- ── Stats Row ── -->
+<div class="att-stats">
+    <div class="att-stat s-present">
+        <div class="att-stat-top">
+            <div class="att-stat-ic"><i class="fa fa-check-circle"></i></div>
+            <div class="att-stat-val">@ViewBag.TotalPresent</div>
+        </div>
+        <div class="att-stat-lbl">Present</div>
+    </div>
+    <div class="att-stat s-absent">
+        <div class="att-stat-top">
+            <div class="att-stat-ic"><i class="fa fa-times-circle"></i></div>
+            <div class="att-stat-val">@ViewBag.TotalAbsent</div>
+        </div>
+        <div class="att-stat-lbl">Absent</div>
+    </div>
+    <div class="att-stat s-late">
+        <div class="att-stat-top">
+            <div class="att-stat-ic"><i class="fa fa-clock-o"></i></div>
+            <div class="att-stat-val">@ViewBag.TotalLate</div>
+        </div>
+        <div class="att-stat-lbl">Late</div>
+    </div>
+    <div class="att-stat s-half">
+        <div class="att-stat-top">
+            <div class="att-stat-ic"><i class="fa fa-adjust"></i></div>
+            <div class="att-stat-val">@ViewBag.TotalHalfDay</div>
+        </div>
+        <div class="att-stat-lbl">Half Day</div>
+    </div>
+    <div class="att-stat s-leave">
+        <div class="att-stat-top">
+            <div class="att-stat-ic"><i class="fa fa-calendar-minus-o"></i></div>
+            <div class="att-stat-val">@ViewBag.TotalLeave</div>
+        </div>
+        <div class="att-stat-lbl">On Leave</div>
+    </div>
+    <div class="att-stat s-total">
+        <div class="att-stat-top">
+            <div class="att-stat-ic"><i class="fa fa-list"></i></div>
+            <div class="att-stat-val">@Model.Count()</div>
+        </div>
+        <div class="att-stat-lbl">Total Records</div>
+    </div>
+</div>
+
+<!-- ── Main Card ── -->
+<div class="att-card">
+
+    <!-- Card Header -->
+    <div class="att-card-hd">
+        <div class="att-card-hd-left">
+            <i class="fa fa-list-ul"></i>
+            <span>Attendance Records</span>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    @using (Html.BeginForm("Index", "Attendance", FormMethod.Get))
+    {
+        <div class="att-filters">
+            <div class="att-filter-group">
+                <label><i class="fa fa-calendar" style="margin-right:4px"></i>Select Date</label>
+                <input type="date" name="date" value="@ViewBag.SelectedDate" class="att-filter-input" />
+            </div>
+            <div class="att-filter-group">
+                <label><i class="fa fa-users" style="margin-right:4px"></i>Employee Type</label>
+                <select name="empType" class="att-filter-input">
+                    <option value="">-- All Types --</option>
+                    <option value="Staff" @(ViewBag.EmpTypeVal == "Staff" ? "selected" : "")>Staff</option>
+                    <option value="Doctor" @(ViewBag.EmpTypeVal == "Doctor" ? "selected" : "")>Doctor</option>
+                </select>
+            </div>
+            <div class="att-filter-group">
+                <label><i class="fa fa-filter" style="margin-right:4px"></i>Status</label>
+                <select name="status" class="att-filter-input">
+                    <option value="">-- All Status --</option>
+                    <option value="Present" @(ViewBag.StatusVal == "Present" ? "selected" : "")>Present</option>
+                    <option value="Absent" @(ViewBag.StatusVal == "Absent" ? "selected" : "")>Absent</option>
+                    <option value="Late" @(ViewBag.StatusVal == "Late" ? "selected" : "")>Late</option>
+                    <option value="HalfDay" @(ViewBag.StatusVal == "HalfDay" ? "selected" : "")>Half Day</option>
+                    <option value="Leave" @(ViewBag.StatusVal == "Leave" ? "selected" : "")>Leave</option>
+                </select>
+            </div>
+            <div class="att-filter-btns">
+                <button type="submit" class="f-btn primary">
+                    <i class="fa fa-search"></i> Filter
+                </button>
+                <a href="@Url.Action("Index")" class="f-btn default">
+                    <i class="fa fa-refresh"></i> Today
+                </a>
+            </div>
+        </div>
+    }
+
+    <!-- Table -->
+    <div style="overflow-x:auto">
+        <table class="att-tbl">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Employee ID</th>
+                    <th>Type</th>
+                    <th><i class="fa fa-sign-in" style="margin-right:4px"></i>In Time</th>
+                    <th><i class="fa fa-sign-out" style="margin-right:4px"></i>Out Time</th>
+                    <th><i class="fa fa-hourglass-half" style="margin-right:4px"></i>Working Hours</th>
+                    <th>Status</th>
+                    <th>Marked By</th>
+                    <th>Remarks</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int s = 1; }
+                @foreach (var a in Model)
+                {
+                    string worked = "-";
+                    bool fullDay = false;
+                    if (a.InTime.HasValue && a.OutTime.HasValue)
+                    {
+                        var dur = a.OutTime.Value - a.InTime.Value;
+                        worked = dur.Hours + "h " + dur.Minutes + "m";
+                        fullDay = dur.TotalHours >= 7;
+                    }
+                    <tr>
+                        <td class="row-num">@string.Format("{0:D2}", sr++)</td>
+
+                        <td>
+                            <span class="emp-id-chip @(a.EmployeeType == "Staff" ? "chip-staff" : "chip-doctor")">
+                                <i class="fa fa-@(a.EmployeeType == "Staff" ? "user" : "user-md")" style="font-size:10px"></i>
+                                @(a.EmployeeType == "Staff" ? "STF" : "DOC")-@a.EmployeeId.ToString("D3")
+                            </span>
+                        </td>
+
+                        <td>
+                            @if (a.EmployeeType == "Staff")
+                            {
+                                <span class="type-badge type-staff">
+                                    <i class="fa fa-user" style="font-size:10px"></i> Staff
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="type-badge type-doctor">
+                                    <i class="fa fa-user-md" style="font-size:10px"></i> Doctor
+                                </span>
+                            }
+                        </td>
+
+                        <td>
+                            <div class="time-cell">
+                                <i class="fa fa-sign-in" style="color:#16a34a;font-size:13px"></i>
+                                @if (a.InTime.HasValue)
+                                {
+                                    <span class="time-val">@DateTime.Today.Add(a.InTime.Value).ToString("hh:mm tt")</span>
+                                }
+                                else
+                                {
+                                    <span class="time-na">—</span>
+                                }
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="time-cell">
+                                <i class="fa fa-sign-out" style="color:#ef4444;font-size:13px"></i>
+                                @if (a.OutTime.HasValue)
+                                {
+                                    <span class="time-val">@DateTime.Today.Add(a.OutTime.Value).ToString("hh:mm tt")</span>
+                                }
+                                else
+                                {
+                                    <span class="time-na">—</span>
+                                }
+                            </div>
+                        </td>
+
+                        <td>
+                            @if (worked == "-")
+                            {
+                                <span class="hours-pill none"><i class="fa fa-minus" style="font-size:9px"></i> N/A</span>
+                            }
+                            else
+                            {
+                                <span class="hours-pill @(fullDay ? "full" : "")">
+                                    <i class="fa fa-hourglass-half" style="font-size:10px"></i>
+                                    @worked
+                                </span>
+                            }
+                        </td>
+
+                        <td>
+                            @if (a.Status == "Present")
+                            {
+                                <span class="s-badge sb-present"><i class="fa fa-circle"></i> Present</span>
+                            }
+                            else if (a.Status == "Absent")
+                            {
+                                <span class="s-badge sb-absent"><i class="fa fa-circle"></i> Absent</span>
+                            }
+                            else if (a.Status == "Late")
+                            {
+                                <span class="s-badge sb-late"><i class="fa fa-circle"></i> Late</span>
+                            }
+                            else if (a.Status == "HalfDay")
+                            {
+                                <span class="s-badge sb-halfday"><i class="fa fa-circle"></i> Half Day</span>
+                            }
+                            else
+                            {
+                                <span class="s-badge sb-leave"><i class="fa fa-circle"></i> On Leave</span>
+                            }
+                        </td>
+
+                        <td>
+                            <div class="marked-by">
+                                <i class="fa fa-user-o"></i> @a.MarkedBy
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="remark-txt" title="@a.Remarks">
+                                @(string.IsNullOrEmpty(a.Remarks) ? "—" : a.Remarks)
+                            </div>
+                        </td>
+
+                        <td>
+                            <a href="@Url.Action("Delete", new { id = a.Id })"
+                               class="del-btn" title="Delete Record"
+                               onclick="return confirm('Delete this attendance record?')">
+                                <i class="fa fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="10">
+                            <div class="att-empty">
+                                <div class="att-empty-icon">
+                                    <i class="fa fa-calendar-times-o"></i>
+                                </div>
+                                <h5>No Records Found</h5>
+                                <p>No attendance records for <strong>@ViewBag.DisplayDate</strong>. Mark attendance to get started.</p>
+                                <a href="@Url.Action("BulkMark")" class="att-bulk-btn">
+                                    <i class="fa fa-users"></i> Mark Attendance Now
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

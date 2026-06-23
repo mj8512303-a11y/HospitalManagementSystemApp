@@ -1,0 +1,685 @@
+@*@model IEnumerable<HospitalMS.Models.Hospital>
+    @{
+        ViewBag.Title = "Hospital Management";
+        ViewBag.ActiveMenu = "Hospital";
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+
+    <div class="page-header-box">
+        <h3><i class="fa fa-building"></i> Hospital (Company) Management</h3>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+            <li class="active">Hospital</li>
+        </ol>
+    </div>
+
+    <div class="card-box">
+        <div class="card-title">
+            <i class="fa fa-list"></i> All Hospitals
+            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm pull-right">
+                <i class="fa fa-plus"></i> Add Hospital
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" id="hospitalTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Logo</th>
+                        <th>Hospital Name</th>
+                        <th>Reg No</th>
+                        <th>Contact</th>
+                        <th>Email</th>
+                        <th>Working Days</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ int i = 1; }
+                    @foreach (var h in Model)
+                    {
+                        <tr>
+                            <td>@(i++)</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(h.LogoPath))
+                                {
+                                    <img src="@h.LogoPath" style="height:35px;width:35px;border-radius:50%;object-fit:cover" />
+                                }
+                                else
+                                {
+                                    <span class="fa fa-hospital-o" style="font-size:28px;color:#2980b9"></span>
+                                }
+                            </td>
+                            <td><strong>@h.Name</strong></td>
+                            <td>@h.RegistrationNo</td>
+                            <td>@h.ContactNo</td>
+                            <td>@h.Email</td>
+                            <td>@h.WorkingDays</td>
+                            <td>
+                                @if (h.IsActive)
+                                { <span class="badge-active">Active</span> }
+                                else
+                                { <span class="badge-inactive">Inactive</span> }
+                            </td>
+                            <td>
+                                <a href="@Url.Action("Details", new { id = h.Id })" class="btn btn-info btn-sm" title="Details">
+                                    <i class="fa fa-eye"></i>
+                                </a>
+                                <a href="@Url.Action("Edit", new { id = h.Id })" class="btn btn-warning btn-sm" title="Edit">
+                                    <i class="fa fa-pencil"></i>
+                                </a>
+                                <a href="@Url.Action("Delete", new { id = h.Id })" class="btn btn-danger btn-sm"
+                                   onclick="return confirm('Are you sure you want to delete this hospital?')" title="Delete">
+                                    <i class="fa fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center text-muted" style="padding:30px">
+                                <i class="fa fa-building" style="font-size:40px;opacity:0.3"></i>
+                                <p>No hospital record found. <a href="@Url.Action("Create")">Add Hospital</a></p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>*@
+@model IEnumerable<HospitalMS.Models.Hospital>
+@{
+    ViewBag.Title = "Hospital Management";
+    ViewBag.ActiveMenu = "Hospital";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    int totalHospitals = Model.Count();
+    int activeCount = Model.Count(h => h.IsActive);
+    int inactiveCount = totalHospitals - activeCount;
+}
+
+<style>
+    /* ?? Page Header ?? */
+    .hms-page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .hms-page-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .hms-page-icon {
+        width: 46px;
+        height: 46px;
+        background: linear-gradient(135deg, #1a6fc4 0%, #2196f3 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(33,150,243,.30);
+    }
+
+        .hms-page-icon i {
+            color: #fff;
+            font-size: 20px;
+        }
+
+    .hms-page-title h3 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .hms-breadcrumb {
+        margin: 2px 0 0;
+        font-size: 12.5px;
+        color: #94a3b8;
+    }
+
+        .hms-breadcrumb a {
+            color: #2196f3;
+            text-decoration: none;
+        }
+
+            .hms-breadcrumb a:hover {
+                text-decoration: underline;
+            }
+
+    /* ?? Summary Cards ?? */
+    .hms-summary-row {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 22px;
+        flex-wrap: wrap;
+    }
+
+    .hms-stat-card {
+        flex: 1;
+        min-width: 150px;
+        background: #fff;
+        border-radius: 14px;
+        padding: 18px 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.07);
+        border-left: 4px solid transparent;
+    }
+
+        .hms-stat-card.total {
+            border-color: #2196f3;
+        }
+
+        .hms-stat-card.active {
+            border-color: #22c55e;
+        }
+
+        .hms-stat-card.inactive {
+            border-color: #f59e0b;
+        }
+
+    .hms-stat-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .total .hms-stat-icon {
+        background: #eff6ff;
+        color: #2196f3;
+    }
+
+    .active .hms-stat-icon {
+        background: #f0fdf4;
+        color: #22c55e;
+    }
+
+    .inactive .hms-stat-icon {
+        background: #fffbeb;
+        color: #f59e0b;
+    }
+
+    .hms-stat-body {
+        line-height: 1.3;
+    }
+
+    .hms-stat-value {
+        font-size: 26px;
+        font-weight: 800;
+        color: #1e293b;
+    }
+
+    .hms-stat-label {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+
+    /* ?? Main Card ?? */
+    .hms-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 2px 16px rgba(0,0,0,.08);
+        overflow: hidden;
+    }
+
+    .hms-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 22px;
+        border-bottom: 1px solid #f1f5f9;
+        background: #fafbfd;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .hms-card-header-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .hms-card-header-left i {
+            color: #2196f3;
+            font-size: 16px;
+        }
+
+        .hms-card-header-left span {
+            font-weight: 700;
+            font-size: 15px;
+            color: #1e293b;
+        }
+
+    .hms-card-header-right .btn-add {
+        background: linear-gradient(135deg,#1a6fc4,#2196f3);
+        color: #fff;
+        border: none;
+        border-radius: 9px;
+        padding: 8px 18px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        box-shadow: 0 3px 10px rgba(33,150,243,.35);
+        transition: opacity .2s;
+    }
+
+        .hms-card-header-right .btn-add:hover {
+            opacity: .88;
+            color: #fff;
+        }
+
+    /* ?? Table ?? */
+    .hms-table-wrap {
+        padding: 0;
+        overflow-x: auto;
+    }
+
+    .hms-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+    }
+
+        .hms-table thead tr {
+            background: #f8fafc;
+        }
+
+        .hms-table thead th {
+            padding: 13px 16px;
+            text-align: left;
+            font-size: 11.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            color: #64748b;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .hms-table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            transition: background .15s;
+        }
+
+            .hms-table tbody tr:hover {
+                background: #f8fafc;
+            }
+
+        .hms-table tbody td {
+            padding: 13px 16px;
+            color: #334155;
+            vertical-align: middle;
+        }
+
+    /* Logo Cell */
+    .hms-logo-circle {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #e2e8f0;
+    }
+
+    .hms-logo-placeholder {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: linear-gradient(135deg,#eff6ff,#dbeafe);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #bfdbfe;
+    }
+
+        .hms-logo-placeholder i {
+            font-size: 17px;
+            color: #2196f3;
+        }
+
+    /* Hospital Name */
+    .hms-hospital-name {
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .hms-reg-no {
+        font-size: 12px;
+        color: #94a3b8;
+    }
+
+    /* Contact */
+    .hms-contact {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+        .hms-contact i {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+    /* Badges */
+    .hms-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 11px;
+        border-radius: 20px;
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: .3px;
+    }
+
+        .hms-badge.active {
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+
+        .hms-badge.inactive {
+            background: #fffbeb;
+            color: #d97706;
+            border: 1px solid #fde68a;
+        }
+
+        .hms-badge i {
+            font-size: 8px;
+        }
+
+    /* Action Buttons */
+    .hms-actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    .hms-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        text-decoration: none;
+        transition: all .18s;
+        border: none;
+        cursor: pointer;
+    }
+
+        .hms-btn.view {
+            background: #eff6ff;
+            color: #2196f3;
+        }
+
+        .hms-btn.edit {
+            background: #fffbeb;
+            color: #d97706;
+        }
+
+        .hms-btn.delete {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+
+        .hms-btn:hover.view {
+            background: #2196f3;
+            color: #fff;
+        }
+
+        .hms-btn:hover.edit {
+            background: #d97706;
+            color: #fff;
+        }
+
+        .hms-btn:hover.delete {
+            background: #ef4444;
+            color: #fff;
+        }
+
+    /* Empty State */
+    .hms-empty {
+        text-align: center;
+        padding: 56px 20px;
+    }
+
+    .hms-empty-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: #eff6ff;
+        margin: 0 auto 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .hms-empty-icon i {
+            font-size: 32px;
+            color: #93c5fd;
+        }
+
+    .hms-empty h5 {
+        color: #64748b;
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0 0 6px;
+    }
+
+    .hms-empty p {
+        color: #94a3b8;
+        font-size: 13.5px;
+        margin: 0;
+    }
+
+    .hms-empty a {
+        color: #2196f3;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    /* Working Days chip */
+    .hms-days-chip {
+        display: inline-block;
+        background: #f1f5f9;
+        color: #475569;
+        border-radius: 6px;
+        padding: 3px 9px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 600px) {
+        .hms-summary-row {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<!-- ?? Page Header ?? -->
+<div class="hms-page-header">
+    <div class="hms-page-title">
+        <div class="hms-page-icon">
+            <i class="fa fa-hospital-o"></i>
+        </div>
+        <div>
+            <h3>Hospital Management</h3>
+            <div class="hms-breadcrumb">
+                <a href="@Url.Action("Index","Home")"><i class="fa fa-home"></i> Dashboard</a>
+                &nbsp;/&nbsp; Hospitals
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ?? Summary Stats ?? -->
+<div class="hms-summary-row">
+    <div class="hms-stat-card total">
+        <div class="hms-stat-icon"><i class="fa fa-building"></i></div>
+        <div class="hms-stat-body">
+            <div class="hms-stat-value">@totalHospitals</div>
+            <div class="hms-stat-label">Total Hospitals</div>
+        </div>
+    </div>
+    <div class="hms-stat-card active">
+        <div class="hms-stat-icon"><i class="fa fa-check-circle"></i></div>
+        <div class="hms-stat-body">
+            <div class="hms-stat-value">@activeCount</div>
+            <div class="hms-stat-label">Active</div>
+        </div>
+    </div>
+    <div class="hms-stat-card inactive">
+        <div class="hms-stat-icon"><i class="fa fa-pause-circle"></i></div>
+        <div class="hms-stat-body">
+            <div class="hms-stat-value">@inactiveCount</div>
+            <div class="hms-stat-label">Inactive</div>
+        </div>
+    </div>
+</div>
+
+<!-- ?? Main Table Card ?? -->
+<div class="hms-card">
+    <div class="hms-card-header">
+        <div class="hms-card-header-left">
+            <i class="fa fa-list-ul"></i>
+            <span>All Registered Hospitals</span>
+        </div>
+        <div class="hms-card-header-right">
+            <a href="@Url.Action("Create")" class="btn-add">
+                <i class="fa fa-plus-circle"></i> Add Hospital
+            </a>
+        </div>
+    </div>
+
+    <div class="hms-table-wrap">
+        <table class="hms-table" id="hospitalTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Logo</th>
+                    <th>Hospital</th>
+                    <th><i class="fa fa-phone" style="margin-right:4px"></i>Contact</th>
+                    <th><i class="fa fa-envelope-o" style="margin-right:4px"></i>Email</th>
+                    <th><i class="fa fa-calendar" style="margin-right:4px"></i>Working Days</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int i = 1; }
+                @foreach (var h in Model)
+                {
+                    <tr>
+                        <td style="color:#94a3b8;font-weight:600;">@(i++)</td>
+
+                        <td>
+                            @if (!string.IsNullOrEmpty(h.LogoPath))
+                            {
+                                <img src="@h.LogoPath" class="hms-logo-circle" alt="@h.Name logo" />
+                            }
+                            else
+                            {
+                                <div class="hms-logo-placeholder">
+                                    <i class="fa fa-hospital-o"></i>
+                                </div>
+                            }
+                        </td>
+
+                        <td>
+                            <div class="hms-hospital-name">@h.Name</div>
+                            <div class="hms-reg-no"><i class="fa fa-id-card-o"></i> @h.RegistrationNo</div>
+                        </td>
+
+                        <td>
+                            <div class="hms-contact">
+                                <i class="fa fa-phone"></i> @h.ContactNo
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="hms-contact">
+                                <i class="fa fa-envelope-o"></i> @h.Email
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="hms-days-chip">
+                                <i class="fa fa-clock-o"></i> @h.WorkingDays
+                            </span>
+                        </td>
+
+                        <td>
+                            @if (h.IsActive)
+                            {
+                                <span class="hms-badge active">
+                                    <i class="fa fa-circle"></i> Active
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="hms-badge inactive">
+                                    <i class="fa fa-circle"></i> Inactive
+                                </span>
+                            }
+                        </td>
+
+                        <td>
+                            <div class="hms-actions">
+                                <a href="@Url.Action("Details", new { id = h.Id })"
+                                   class="hms-btn view" title="View Details">
+                                    <i class="fa fa-eye"></i>
+                                </a>
+                                <a href="@Url.Action("Edit", new { id = h.Id })"
+                                   class="hms-btn edit" title="Edit">
+                                    <i class="fa fa-pencil"></i>
+                                </a>
+                                <a href="@Url.Action("Delete", new { id = h.Id })"
+                                   class="hms-btn delete" title="Delete"
+                                   onclick="return confirm('Are you sure you want to delete @h.Name?')">
+                                    <i class="fa fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8">
+                            <div class="hms-empty">
+                                <div class="hms-empty-icon">
+                                    <i class="fa fa-hospital-o"></i>
+                                </div>
+                                <h5>No Hospitals Found</h5>
+                                <p>No hospital records added yet. <a href="@Url.Action("Create")">Add your first hospital</a> to get started.</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

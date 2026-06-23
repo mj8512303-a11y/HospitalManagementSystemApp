@@ -1,0 +1,59 @@
+@model HospitalMS.Models.Designation
+@{
+    ViewBag.Title = "Designation Details";
+    ViewBag.ActiveMenu = "Designation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header-box">
+    <h3><i class="fa fa-eye"></i> Designation Details</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Designation</a></li>
+        <li class="active">Details</li>
+    </ol>
+</div>
+
+<div class="row">
+    <div class="col-md-5">
+        <div class="card-box text-center">
+            <div style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#1a3c5e,#2980b9);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
+                <i class="fa fa-id-badge" style="font-size:38px;color:#fff"></i>
+            </div>
+            <h4 style="color:#2c3e50;font-weight:700">@Model.Name</h4>
+            @if (Model.IsActive) { <span class="badge-active">Active</span> }
+            else { <span class="badge-inactive">Inactive</span> }
+
+            <div class="row text-center" style="margin-top:20px">
+                <div class="col-xs-12">
+                    <div style="background:#eaf4fb;border-radius:8px;padding:14px">
+                        <div style="font-size:26px;font-weight:700;color:#27ae60">
+                            Rs. @Model.BasicSalary.ToString("N0")
+                        </div>
+                        <div style="font-size:12px;color:#666">Basic Salary</div>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top:12px;background:#f8f9fa;border-radius:8px;padding:12px">
+                <div style="font-size:24px;font-weight:700;color:#2980b9">@ViewBag.StaffCount</div>
+                <div style="font-size:12px;color:#666">Staff Assigned</div>
+            </div>
+            <hr />
+            <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-warning btn-sm btn-block"><i class="fa fa-pencil"></i> Edit</a>
+            <a href="@Url.Action("Index")" class="btn btn-default btn-sm btn-block" style="margin-top:5px"><i class="fa fa-arrow-left"></i> Back</a>
+        </div>
+    </div>
+    <div class="col-md-7">
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-info-circle"></i> Full Information</div>
+            <table class="table table-bordered">
+                <tr><th style="background:#f8f9fa;width:38%">Designation Name</th><td><strong>@Model.Name</strong></td></tr>
+                <tr><th style="background:#f8f9fa">Basic Salary</th><td><span style="color:#27ae60;font-weight:700">Rs. @Model.BasicSalary.ToString("N0")</span></td></tr>
+                <tr><th style="background:#f8f9fa">Status</th><td>@if (Model.IsActive) { <span class="badge-active">Active</span> } else { <span class="badge-inactive">Inactive</span> }</td></tr>
+                <tr><th style="background:#f8f9fa">Staff Count</th><td>@ViewBag.StaffCount persons</td></tr>
+                <tr><th style="background:#f8f9fa">Created On</th><td>@Model.CreatedAt.ToString("dd MMM yyyy")</td></tr>
+                <tr><th style="background:#f8f9fa">Description</th><td>@(string.IsNullOrEmpty(Model.Description) ? "N/A" : Model.Description)</td></tr>
+            </table>
+        </div>
+    </div>
+</div>

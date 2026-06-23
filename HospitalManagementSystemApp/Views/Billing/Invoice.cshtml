@@ -1,0 +1,289 @@
+﻿@model HospitalMS.Models.Billing
+@{
+    Layout = null;
+    var hospital = ViewBag.Hospital as HospitalMS.Models.Hospital;
+    string statusColor = Model.Status == "Paid" ? "#27ae60" : Model.Status == "Partial" ? "#f39c12" : "#e74c3c";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Invoice @Model.InvoiceNo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/3.4.1/css/bootstrap.min.css" />
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI',Arial,sans-serif;
+            background: #f4f6f9;
+            padding: 30px;
+            font-size: 13px;
+        }
+
+        .invoice-box {
+            max-width: 820px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .inv-header {
+            background: linear-gradient(135deg,#1a3c5e,#2980b9);
+            color: #fff;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .inv-header h2 {
+                margin: 0 0 4px;
+                font-size: 22px;
+            }
+
+            .inv-header p {
+                margin: 2px 0;
+                font-size: 12px;
+                opacity: 0.9;
+            }
+
+        .inv-title {
+            background: #eaf4fb;
+            padding: 12px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .inv-title h4 {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 700;
+                color: #1a3c5e;
+                letter-spacing: 1px;
+            }
+
+        .inv-body {
+            padding: 25px 30px;
+        }
+
+        .info-section {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-box {
+            flex: 1;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+            .info-box h6 {
+                font-size: 11px;
+                font-weight: 700;
+                color: #888;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                margin-bottom: 10px;
+            }
+
+            .info-box p {
+                margin: 4px 0;
+                font-size: 13px;
+            }
+
+        .inv-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .inv-table th {
+                background: #1a3c5e;
+                color: #fff;
+                padding: 10px 14px;
+                text-align: left;
+                font-size: 12px;
+            }
+
+            .inv-table td {
+                padding: 10px 14px;
+                border-bottom: 1px solid #eee;
+                font-size: 13px;
+            }
+
+            .inv-table tr:last-child td {
+                border-bottom: none;
+            }
+
+        .total-section {
+            background: #eaf4fb;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+
+        .status-stamp {
+            display: inline-block;
+            padding: 6px 18px;
+            border: 3px solid;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 2px;
+            transform: rotate(-5deg);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 11px;
+            color: #999;
+            border-top: 1px solid #eee;
+            margin-top: 20px;
+        }
+
+        .print-bar {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        @@media print {
+            .print-bar {
+                display: none;
+            }
+
+            body {
+                background: #fff;
+                padding: 0;
+            }
+
+            .invoice-box {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-bar">
+        <button onclick="window.print()" class="btn btn-primary"><i class="fa fa-print"></i> Print Invoice</button>
+        <a href="javascript:history.back()" class="btn btn-default">Back</a>
+    </div>
+
+    <div class="invoice-box">
+        <!-- Header -->
+        <div class="inv-header">
+            <div>
+                <h2><i class="fa fa-hospital-o"></i> @(hospital != null ? hospital.Name : "Hospital Management System")</h2>
+                <p><i class="fa fa-map-marker"></i> @(hospital != null ? hospital.Address : "")</p>
+                <p><i class="fa fa-phone"></i> @(hospital != null ? hospital.ContactNo : "") &nbsp;&nbsp; <i class="fa fa-envelope"></i> @(hospital != null ? hospital.Email : "")</p>
+            </div>
+            <div style="text-align:right">
+                <span class="status-stamp" style="color:@statusColor;border-color:@statusColor">@Model.Status.ToUpper()</span>
+            </div>
+        </div>
+
+        <!-- Invoice Title Bar -->
+        <div class="inv-title">
+            <h4><i class="fa fa-file-text-o"></i> INVOICE</h4>
+            <div style="text-align:right">
+                <div style="font-size:18px;font-weight:700;color:#2980b9">@Model.InvoiceNo</div>
+                <div style="font-size:12px;color:#888">Date: @Model.BillingDate.ToString("dd MMMM yyyy")</div>
+            </div>
+        </div>
+
+        <div class="inv-body">
+            <!-- Patient & Bill Info -->
+            <div class="info-section">
+                <div class="info-box">
+                    <h6>Bill To</h6>
+                    <p><strong>@(Model.Patient != null ? Model.Patient.FullName : "N/A")</strong></p>
+                    <p>Patient ID: <strong>P-@(Model.Patient != null ? Model.Patient.Id.ToString("D4") : "0000")</strong></p>
+                    <p>Phone: @(Model.Patient != null ? Model.Patient.Phone : "-")</p>
+                    <p>Age/Gender: @(Model.Patient != null ? Model.Patient.Age + " yrs / " + Model.Patient.Gender : "-")</p>
+                </div>
+                <div class="info-box">
+                    <h6>Invoice Details</h6>
+                    <p>Invoice No: <strong style="color:#2980b9">@Model.InvoiceNo</strong></p>
+                    <p>Date: <strong>@Model.BillingDate.ToString("dd MMM yyyy")</strong></p>
+                    <p>Branch: @(Model.Branch != null ? Model.Branch.Name : "N/A")</p>
+                    <p>Payment Mode: <strong>@Model.PaymentMode</strong></p>
+                </div>
+            </div>
+
+            <!-- Charges Table -->
+            <table class="inv-table">
+                <thead>
+                    <tr><th>#</th><th>Description</th><th style="text-align:right">Amount (Rs.)</th></tr>
+                </thead>
+                <tbody>
+                    @{ int row = 1; }
+                    @if (Model.ConsultationFee > 0)
+                    {
+                        <tr><td>@(row++)</td><td>Consultation Fee</td><td style="text-align:right">@Model.ConsultationFee.ToString("N0")</td></tr>
+}
+                    @if (Model.TestCharges > 0)
+                    {
+                        <tr><td>@(row++)</td><td>Laboratory / Test Charges</td><td style="text-align:right">@Model.TestCharges.ToString("N0")</td></tr>
+}
+                    @if (Model.MedicineCharges > 0)
+                    {
+                        <tr><td>@(row++)</td><td>Medicine Charges</td><td style="text-align:right">@Model.MedicineCharges.ToString("N0")</td></tr>
+}
+                    @if (Model.OtherCharges > 0)
+                    {
+                        <tr><td>@(row++)</td><td>Other Charges</td><td style="text-align:right">@Model.OtherCharges.ToString("N0")</td></tr>
+}
+                    @if (Model.Discount > 0)
+                    {
+                        <tr><td colspan="2" style="color:#e74c3c">Discount</td><td style="text-align:right;color:#e74c3c">− @Model.Discount.ToString("N0")</td></tr>
+}
+                </tbody>
+            </table>
+
+            <!-- Totals -->
+            <div class="total-section">
+                <div class="row">
+                    <div class="col-md-6 col-md-offset-6">
+                        <table style="width:100%">
+                            <tr><td style="padding:5px 0">Total Amount</td><td style="text-align:right;font-size:16px;font-weight:700;color:#2980b9">Rs. @Model.TotalAmount.ToString("N0")</td></tr>
+                            <tr><td style="padding:5px 0;color:#27ae60">Amount Paid</td><td style="text-align:right;color:#27ae60;font-weight:600">Rs. @Model.PaidAmount.ToString("N0")</td></tr>
+                            <tr style="border-top:2px solid #ccc">
+                                <td style="padding:8px 0 0;font-weight:700">Balance Due</td>
+                                <td style="text-align:right;font-size:18px;font-weight:700;color:@(Model.RemainingAmount>0?"#e74c3c":"#27ae60");padding-top:8px">
+                                    Rs. @Model.RemainingAmount.ToString("N0")
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <div style="margin-top:15px;font-size:13px;color:#555"><strong>Notes:</strong> @Model.Notes</div>
+            }
+
+            <!-- Signatures -->
+            <div class="row" style="margin-top:50px">
+                <div class="col-md-4 text-center">
+                    <div style="border-top:1px solid #999;padding-top:6px;font-size:12px;color:#666">Patient Signature</div>
+                </div>
+                <div class="col-md-4 col-md-offset-4 text-center">
+                    <div style="border-top:1px solid #999;padding-top:6px;font-size:12px;color:#666">Authorized Signature</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            Thank you for choosing @(hospital != null ? hospital.Name : "our hospital"). Get well soon!<br />
+            This is a computer-generated invoice. Generated on @DateTime.Now.ToString("dd MMM yyyy, hh:mm tt")
+        </div>
+    </div>
+</body>
+</html>

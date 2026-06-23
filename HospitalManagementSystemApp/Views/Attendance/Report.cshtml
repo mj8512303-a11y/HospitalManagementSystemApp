@@ -1,0 +1,181 @@
+@model IEnumerable<HospitalMS.Models.Attendance>
+@{
+    ViewBag.Title = "Attendance Report";
+    ViewBag.ActiveMenu = "Attendance";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int totalDays = ViewBag.TotalDays;
+    int present   = ViewBag.Present;
+    int absent    = ViewBag.Absent;
+    int late      = ViewBag.Late;
+    int halfDay   = ViewBag.HalfDay;
+    int leave     = ViewBag.Leave;
+    int total     = present + absent + late + halfDay + leave;
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-bar-chart"></i> Monthly Attendance Report — @ViewBag.MonthName</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Attendance</a></li>
+        <li class="active">Report</li>
+    </ol>
+</div>
+
+<!-- Filter -->
+@using (Html.BeginForm("Report","Attendance",FormMethod.Get))
+{
+    <div class="card-box">
+        <div class="row">
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label class="control-label">Month</label>
+                    <select name="month" class="form-control">
+                        @for (int i=1;i<=12;i++){
+                            <option value="@i" @(ViewBag.Month==i?"selected":"")>@(new DateTime(2024,i,1).ToString("MMMM"))</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label class="control-label">Year</label>
+                    <select name="year" class="form-control">
+                        @for (int y=2023;y<=DateTime.Now.Year+1;y++){
+                            <option value="@y" @(ViewBag.Year==y?"selected":"")>@y</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label class="control-label">Type</label>
+                    <select name="empType" class="form-control">
+                        <option value="Staff"  @(ViewBag.EmpType=="Staff"?"selected":"")>Staff</option>
+                        <option value="Doctor" @(ViewBag.EmpType=="Doctor"?"selected":"")>Doctor</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="control-label">Employee (Optional)</label>
+                    @Html.DropDownList("employeeId",(SelectList)ViewBag.StaffList,"-- All Employees --",new{@class="form-control"})
+                </div>
+            </div>
+            <div class="col-md-3" style="margin-top:24px">
+                <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Generate Report</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Summary Cards -->
+<div class="row">
+    <div class="col-md-2">
+        <div class="stat-card stat-green"><div><div class="stat-number">@present</div><div class="stat-label">Present</div></div><i class="fa fa-check-circle stat-icon"></i></div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-red"><div><div class="stat-number">@absent</div><div class="stat-label">Absent</div></div><i class="fa fa-times-circle stat-icon"></i></div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-orange"><div><div class="stat-number">@late</div><div class="stat-label">Late</div></div><i class="fa fa-clock-o stat-icon"></i></div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-purple"><div><div class="stat-number">@halfDay</div><div class="stat-label">Half Day</div></div><i class="fa fa-adjust stat-icon"></i></div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-blue"><div><div class="stat-number">@leave</div><div class="stat-label">Leave</div></div><i class="fa fa-calendar stat-icon"></i></div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card" style="background:linear-gradient(135deg,#555,#777)">
+            <div><div class="stat-number">@total</div><div class="stat-label">Total Records</div></div>
+            <i class="fa fa-list stat-icon"></i>
+        </div>
+    </div>
+</div>
+
+@if (total > 0)
+{
+    <!-- Attendance % bar -->
+    <div class="card-box">
+        <div class="card-title"><i class="fa fa-pie-chart"></i> Attendance Summary — @ViewBag.MonthName</div>
+        @{ double pct = total > 0 ? Math.Round((double)(present+late) / total * 100, 1) : 0; }
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px">
+            <div style="font-size:36px;font-weight:700;color:@(pct>=75?"#27ae60":pct>=50?"#f39c12":"#e74c3c")">@pct%</div>
+            <div style="flex:1">
+                <div style="background:#eee;border-radius:6px;height:20px;overflow:hidden">
+                    <div style="width:@pct%;background:@(pct>=75?"#27ae60":pct>=50?"#f39c12":"#e74c3c");height:100%;border-radius:6px;transition:width 0.5s"></div>
+                </div>
+                <small class="text-muted">Attendance Rate (Present + Late counted)</small>
+            </div>
+        </div>
+        <div class="row text-center">
+            @{ double pw = total>0?Math.Round((double)present/total*100,0):0;
+               double aw = total>0?Math.Round((double)absent/total*100,0):0;
+               double lw = total>0?Math.Round((double)late/total*100,0):0;
+               double hw = total>0?Math.Round((double)halfDay/total*100,0):0;
+               double lvw = total>0?Math.Round((double)leave/total*100,0):0; }
+            <div class="col-md-1" style="height:6px;background:#27ae60;border-radius:3px;width:@pw%;margin:0 2px"></div>
+            <div style="height:20px;background:#ecf0f1;border-radius:4px;overflow:hidden;display:flex;width:100%">
+                <div style="width:@pw%;background:#27ae60" title="Present @pw%"></div>
+                <div style="width:@aw%;background:#e74c3c" title="Absent @aw%"></div>
+                <div style="width:@lw%;background:#f39c12" title="Late @lw%"></div>
+                <div style="width:@hw%;background:#8e44ad" title="Half Day @hw%"></div>
+                <div style="width:@lvw%;background:#3498db" title="Leave @lvw%"></div>
+            </div>
+        </div>
+        <div style="display:flex;gap:16px;font-size:12px;margin-top:8px">
+            <span><span style="display:inline-block;width:12px;height:12px;background:#27ae60;border-radius:2px;margin-right:4px"></span>Present @pw%</span>
+            <span><span style="display:inline-block;width:12px;height:12px;background:#e74c3c;border-radius:2px;margin-right:4px"></span>Absent @aw%</span>
+            <span><span style="display:inline-block;width:12px;height:12px;background:#f39c12;border-radius:2px;margin-right:4px"></span>Late @lw%</span>
+            <span><span style="display:inline-block;width:12px;height:12px;background:#8e44ad;border-radius:2px;margin-right:4px"></span>Half Day @hw%</span>
+            <span><span style="display:inline-block;width:12px;height:12px;background:#3498db;border-radius:2px;margin-right:4px"></span>Leave @lvw%</span>
+        </div>
+    </div>
+}
+
+<!-- Detailed Records -->
+<div class="card-box">
+    <div class="card-title"><i class="fa fa-list"></i> Detailed Records — @ViewBag.MonthName</div>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>#</th><th>Employee ID</th><th>Type</th><th>Date</th>
+                    <th>Day</th><th>In Time</th><th>Out Time</th>
+                    <th>Hours</th><th>Status</th><th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int sr=1; }
+                @foreach (var a in Model)
+                {
+                    string worked = "-";
+                    if (a.InTime.HasValue && a.OutTime.HasValue)
+                    { var d = a.OutTime.Value - a.InTime.Value; worked = d.Hours + "h " + d.Minutes + "m"; }
+                    <tr>
+                        <td>@(sr++)</td>
+                        <td><span style="background:#eaf4fb;color:#2980b9;padding:2px 7px;border-radius:8px;font-weight:700;font-size:12px">@(a.EmployeeType=="Staff"?"STF":"DOC")-@a.EmployeeId.ToString("D3")</span></td>
+                        <td>@if(a.EmployeeType=="Staff"){<span class="label label-primary">Staff</span>}else{<span class="label label-success">Doctor</span>}</td>
+                        <td>@a.Date.ToString("dd MMM yyyy")</td>
+                        <td><small>@a.Date.ToString("ddd")</small></td>
+                        <td>@(a.InTime.HasValue ? DateTime.Today.Add(a.InTime.Value).ToString("hh:mm tt") : "-")</td>
+                        <td>@(a.OutTime.HasValue ? DateTime.Today.Add(a.OutTime.Value).ToString("hh:mm tt") : "-")</td>
+                        <td><i class="fa fa-hourglass-half text-warning"></i> @worked</td>
+                        <td>
+                            @if(a.Status=="Present"){<span class="badge-active">Present</span>}
+                            else if(a.Status=="Absent"){<span class="badge-inactive">Absent</span>}
+                            else if(a.Status=="Late"){<span class="badge-pending">Late</span>}
+                            else if(a.Status=="HalfDay"){<span class="label label-warning" style="padding:4px 8px">Half Day</span>}
+                            else{<span class="label label-info" style="padding:4px 8px">Leave</span>}
+                        </td>
+                        <td><small>@a.Remarks</small></td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {<tr><td colspan="10" class="text-center text-muted" style="padding:30px">
+                    <i class="fa fa-calendar-times-o" style="font-size:40px;opacity:0.25"></i>
+                    <p>No records found for @ViewBag.MonthName</p>
+                </td></tr>}
+            </tbody>
+        </table>
+    </div>
+</div>

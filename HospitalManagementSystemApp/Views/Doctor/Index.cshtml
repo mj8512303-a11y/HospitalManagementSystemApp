@@ -1,0 +1,145 @@
+@model IEnumerable<HospitalMS.Models.Doctor>
+@{
+    ViewBag.Title = "Doctor Management";
+    ViewBag.ActiveMenu = "Doctor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header-box">
+    <h3><i class="fa fa-user-md"></i> Doctor Management</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li class="active">Doctors</li>
+    </ol>
+</div>
+
+<!-- Stats -->
+<div class="row">
+    <div class="col-md-4">
+        <div class="stat-card stat-blue">
+            <div><div class="stat-number">@ViewBag.TotalDoctors</div><div class="stat-label">Total Doctors</div></div>
+            <i class="fa fa-user-md stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card stat-green">
+            <div><div class="stat-number">@ViewBag.ActiveDoctors</div><div class="stat-label">Active Doctors</div></div>
+            <i class="fa fa-check-circle stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card stat-red">
+            <div><div class="stat-number">@ViewBag.InActive</div><div class="stat-label">Inactive Doctors</div></div>
+            <i class="fa fa-times-circle stat-icon"></i>
+        </div>
+    </div>
+</div>
+
+<div class="card-box">
+    <div class="card-title">
+        <i class="fa fa-list"></i> All Doctors
+        <a href="@Url.Action("Create")" class="btn btn-primary btn-sm pull-right">
+            <i class="fa fa-user-plus"></i> Add Doctor
+        </a>
+    </div>
+
+    <!-- Filters -->
+    @using (Html.BeginForm("Index", "Doctor", FormMethod.Get))
+    {
+        <div class="row" style="margin-bottom:15px">
+            <div class="col-md-3">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                    <input type="text" name="search" value="@ViewBag.SearchVal" class="form-control" placeholder="Name / Specialization..." />
+                </div>
+            </div>
+            <div class="col-md-3">
+                @Html.DropDownList("branchId",(SelectList)ViewBag.BranchList,"-- All Branches --",new{@class="form-control"})
+            </div>
+            <div class="col-md-3">
+                @Html.DropDownList("deptId",(SelectList)ViewBag.DeptList,"-- All Departments --",new{@class="form-control"})
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Search</button>
+                <a href="@Url.Action("Index")" class="btn btn-default"><i class="fa fa-refresh"></i> Reset</a>
+            </div>
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Photo</th>
+                    <th>Doctor Name</th>
+                    <th>Specialization</th>
+                    <th>Department</th>
+                    <th>Qualification</th>
+                    <th>Phone</th>
+                    <th>Fee</th>
+                    <th>Available Days</th>
+                    <th>Status</th>
+                    <th style="width:165px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int sr = 1; }
+                @foreach (var d in Model)
+                {
+                    <tr>
+                        <td>@(sr++)</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(d.PhotoPath))
+                            {
+                                <img src="@d.PhotoPath" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid #27ae60" />
+                            }
+                            else
+                            {
+                                <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#16a085,#27ae60);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px">
+                                    @d.FullName[0].ToString().ToUpper()
+                                </div>
+                            }
+                        </td>
+                        <td>
+                            <strong>Dr. @d.FullName</strong>
+                            <br /><small class="text-muted"><i class="fa fa-code-fork"></i> @(d.Branch != null ? d.Branch.Name : "N/A")</small>
+                        </td>
+                        <td><span class="label label-info">@d.Specialization</span></td>
+                        <td>@(d.Branch != null ? d.Branch.Name : "N/A")</td>
+                        <td>@d.Qualification</td>
+                        <td><i class="fa fa-phone text-success"></i> @d.Phone</td>
+                        <td><strong style="color:#27ae60">Rs. @d.ConsultationFee.ToString("N0")</strong></td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(d.AvailableDays))
+                            {
+                                <small><i class="fa fa-calendar text-primary"></i> @d.AvailableDays</small>
+                            }
+                            else { <span class="text-muted">-</span> }
+                        </td>
+                        <td>
+                            @if (d.IsActive) { <span class="badge-active">Active</span> }
+                            else { <span class="badge-inactive">Inactive</span> }
+                        </td>
+                        <td>
+                            <a href="@Url.Action("Details",new{id=d.Id})" class="btn btn-info btn-sm" title="Details"><i class="fa fa-eye"></i></a>
+                            <a href="@Url.Action("Edit",new{id=d.Id})" class="btn btn-warning btn-sm" title="Edit"><i class="fa fa-pencil"></i></a>
+                            <a href="@Url.Action("ToggleStatus",new{id=d.Id})" class="btn btn-@(d.IsActive?"default":"success") btn-sm" title="Toggle"><i class="fa fa-refresh"></i></a>
+                            <a href="@Url.Action("Delete",new{id=d.Id})" class="btn btn-danger btn-sm" title="Delete" onclick="return confirm('Delete Dr. @d.FullName ?')"><i class="fa fa-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="11" class="text-center text-muted" style="padding:45px">
+                            <i class="fa fa-user-md" style="font-size:50px;opacity:0.2"></i>
+                            <p style="margin-top:12px;font-size:15px">No doctors found.</p>
+                            <a href="@Url.Action("Create")" class="btn btn-primary"><i class="fa fa-user-plus"></i> Add First Doctor</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

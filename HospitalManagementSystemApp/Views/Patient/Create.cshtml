@@ -1,0 +1,189 @@
+@model HospitalMS.Models.Patient
+@{
+    ViewBag.Title = "Register Patient";
+    ViewBag.ActiveMenu = "Patient";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header-box">
+    <h3><i class="fa fa-user-plus"></i> Register New Patient</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Patients</a></li>
+        <li class="active">Register</li>
+    </ol>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger alert-dismissible">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <i class="fa fa-exclamation-circle"></i> <strong>Please fix the errors below:</strong>
+        <ul style="margin:6px 0 0 18px">
+            @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            { <li>@e.ErrorMessage</li> }
+        </ul>
+    </div>
+}
+
+@using (Html.BeginForm("Create","Patient",FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+    <!-- Personal Info -->
+    <div class="card-box">
+        <div class="card-title"><i class="fa fa-user"></i> Personal Information</div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.FullName,new{@class="control-label"})
+                    <span class="text-danger">*</span>
+                    @Html.TextBoxFor(m=>m.FullName,new{@class="form-control",placeholder="Patient full name"})
+                    @Html.ValidationMessageFor(m=>m.FullName,"",new{@class="text-danger small"})
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.Age,new{@class="control-label"})
+                    <span class="text-danger">*</span>
+                    @Html.TextBoxFor(m=>m.Age,new{@class="form-control",placeholder="Age",type="number",min="0",max="150"})
+                    @Html.ValidationMessageFor(m=>m.Age,"",new{@class="text-danger small"})
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="control-label">Gender <span class="text-danger">*</span></label>
+                    @Html.DropDownListFor(m=>m.Gender,
+                        new SelectList(new[]{"Male","Female","Other"}),
+                        "-- Select Gender --",new{@class="form-control"})
+                    @Html.ValidationMessageFor(m=>m.Gender,"",new{@class="text-danger small"})
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="control-label">Blood Group</label>
+                    @Html.DropDownListFor(m=>m.BloodGroup,
+                        new SelectList(new[]{"A+","A-","B+","B-","AB+","AB-","O+","O-"}),
+                        "-- Select --",new{@class="form-control"})
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.Phone,new{@class="control-label"})
+                    <span class="text-danger">*</span>
+                    @Html.TextBoxFor(m=>m.Phone,new{@class="form-control",placeholder="03001234567"})
+                    @Html.ValidationMessageFor(m=>m.Phone,"",new{@class="text-danger small"})
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.Email,new{@class="control-label"})
+                    @Html.TextBoxFor(m=>m.Email,new{@class="form-control",placeholder="patient@email.com"})
+                    @Html.ValidationMessageFor(m=>m.Email,"",new{@class="text-danger small"})
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.EmergencyContact,new{@class="control-label"})
+                    @Html.TextBoxFor(m=>m.EmergencyContact,new{@class="form-control",placeholder="Emergency contact number"})
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.Address,new{@class="control-label"})
+                    @Html.TextAreaFor(m=>m.Address,2,0,new{@class="form-control",placeholder="Patient full address"})
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medical Information -->
+    <div class="card-box">
+        <div class="card-title"><i class="fa fa-heartbeat"></i> Medical Information</div>
+        <div class="row">
+            <div class="col-md-8">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.MedicalHistory,new{@class="control-label"})
+                    @Html.TextAreaFor(m=>m.MedicalHistory,3,0,new{@class="form-control",placeholder="Previous diseases, allergies, surgeries, medications..."})
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration Info -->
+    <div class="card-box">
+        <div class="card-title"><i class="fa fa-hospital-o"></i> Registration Information</div>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="control-label">Branch <span class="text-danger">*</span></label>
+                    @Html.DropDownList("BranchId",(SelectList)ViewBag.BranchId,
+                        "-- Select Branch --",new{@class="form-control"})
+                    @Html.ValidationMessageFor(m=>m.BranchId,"",new{@class="text-danger small"})
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="control-label">Patient Type <span class="text-danger">*</span></label>
+                    @Html.DropDownListFor(m=>m.PatientType,
+                        new SelectList(new[]{"OPD","IPD"},"OPD"),
+                        new{@class="form-control",id="patientType",onchange="toggleIPD(this.value)"})
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    @Html.LabelFor(m=>m.RegistrationDate,new{@class="control-label"})
+                    @Html.TextBoxFor(m=>m.RegistrationDate,"{0:yyyy-MM-dd}",
+                        new{@class="form-control",type="date"})
+                </div>
+            </div>
+        </div>
+
+        <!-- IPD Fields (show only when IPD selected) -->
+        <div id="ipdSection" style="display:none">
+            <hr style="border-color:#ffeeba" />
+            <div style="background:#fffbea;border:1px solid #ffeeba;border-radius:6px;padding:14px;margin-bottom:10px">
+                <strong><i class="fa fa-bed text-warning"></i> IPD Details</strong>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        @Html.LabelFor(m=>m.AdmissionDate,new{@class="control-label"})
+                        @Html.TextBoxFor(m=>m.AdmissionDate,"{0:yyyy-MM-dd}",
+                            new{@class="form-control",type="date"})
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        @Html.LabelFor(m=>m.DischargeDate,new{@class="control-label"})
+                        @Html.TextBoxFor(m=>m.DischargeDate,"{0:yyyy-MM-dd}",
+                            new{@class="form-control",type="date"})
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-box">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="fa fa-save"></i> Register Patient
+        </button>
+        <a href="@Url.Action("Index")" class="btn btn-default btn-lg">
+            <i class="fa fa-arrow-left"></i> Back
+        </a>
+    </div>
+}
+
+@section Scripts {
+<script>
+    function toggleIPD(val) {
+        document.getElementById("ipdSection").style.display = (val === "IPD") ? "block" : "none";
+    }
+    // On page load, check current value
+    window.onload = function() { toggleIPD(document.getElementById("patientType").value); };
+</script>
+}

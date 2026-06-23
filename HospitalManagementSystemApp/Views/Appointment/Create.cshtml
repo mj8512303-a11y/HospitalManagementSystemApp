@@ -1,0 +1,155 @@
+@model HospitalMS.Models.Appointment
+@{
+    ViewBag.Title = "Book Appointment";
+    ViewBag.ActiveMenu = "Appointment";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-calendar-plus-o"></i> Book New Appointment</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Appointments</a></li>
+        <li class="active">Book</li>
+    </ol>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger alert-dismissible">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <i class="fa fa-exclamation-circle"></i> <strong>Please fix errors:</strong>
+        <ul style="margin:5px 0 0 18px">
+            @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            { <li>@e.ErrorMessage</li> }
+        </ul>
+    </div>
+}
+
+@using (Html.BeginForm("Create","Appointment",FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card-box">
+                <div class="card-title"><i class="fa fa-info-circle"></i> Appointment Information</div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label">Patient <span class="text-danger">*</span></label>
+                            @Html.DropDownList("PatientId",(SelectList)ViewBag.PatientId,"-- Select Patient --",new{@class="form-control",id="patientSelect"})
+                            @Html.ValidationMessageFor(m=>m.PatientId,"",new{@class="text-danger small"})
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label">Branch <span class="text-danger">*</span></label>
+                            @Html.DropDownList("BranchId",(SelectList)ViewBag.BranchId,"-- Select Branch --",new{@class="form-control"})
+                            @Html.ValidationMessageFor(m=>m.BranchId,"",new{@class="text-danger small"})
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label">Doctor <span class="text-danger">*</span></label>
+                            @Html.DropDownList("DoctorId",(SelectList)ViewBag.DoctorId,"-- Select Doctor --",new{@class="form-control",id="doctorSelect"})
+                            @Html.ValidationMessageFor(m=>m.DoctorId,"",new{@class="text-danger small"})
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label">Appointment Date <span class="text-danger">*</span></label>
+                            @Html.TextBoxFor(m=>m.AppointmentDate,"{0:yyyy-MM-dd}",new{@class="form-control",type="date",id="aptDate",min=DateTime.Today.ToString("yyyy-MM-dd")})
+                            @Html.ValidationMessageFor(m=>m.AppointmentDate,"",new{@class="text-danger small"})
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label">Time Slot <span class="text-danger">*</span></label>
+                            @Html.DropDownList("TimeSlot",(SelectList)ViewBag.TimeSlots,"-- Select Time --",new{@class="form-control",id="timeSlot"})
+                            @Html.ValidationMessageFor(m=>m.TimeSlot,"",new{@class="text-danger small"})
+                            <div id="slotStatus" style="margin-top:5px;font-size:12px"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label">Status</label>
+                            @Html.DropDownListFor(m=>m.Status,
+                                new SelectList(new[]{"Pending","Approved"},"Pending"),
+                                new{@class="form-control"})
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label">Notes / Symptoms</label>
+                    @Html.TextAreaFor(m=>m.Notes,3,0,new{@class="form-control",placeholder="Patient symptoms, reason for visit, special notes..."})
+                </div>
+                @Html.HiddenFor(m=>m.BookedBy)
+            </div>
+            <div class="card-box">
+                <button type="submit" class="btn btn-primary btn-lg"><i class="fa fa-save"></i> Book Appointment</button>
+                <a href="@Url.Action("Index")" class="btn btn-default btn-lg"><i class="fa fa-arrow-left"></i> Back</a>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="col-md-4">
+            <div class="card-box">
+                <div class="card-title"><i class="fa fa-clock-o"></i> Booked Slots (Today)</div>
+                <div id="bookedSlotsList" style="font-size:13px;min-height:60px">
+                    <p class="text-muted"><i class="fa fa-info-circle"></i> Select doctor and date to see booked slots.</p>
+                </div>
+            </div>
+            <div class="card-box">
+                <div class="card-title"><i class="fa fa-lightbulb-o"></i> Quick Guide</div>
+                <ul class="list-unstyled" style="font-size:13px;line-height:2.2">
+                    <li><i class="fa fa-check text-success"></i> Select patient first</li>
+                    <li><i class="fa fa-check text-success"></i> Choose doctor & date</li>
+                    <li><i class="fa fa-check text-success"></i> Check available time slots</li>
+                    <li><i class="fa fa-check text-success"></i> Red slots = already booked</li>
+                    <li><i class="fa fa-check text-success"></i> Past dates not allowed</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script>
+function checkSlots() {
+    var docId = $("#doctorSelect").val();
+    var date  = $("#aptDate").val();
+    if (!docId || !date) return;
+
+    $.getJSON('@Url.Action("GetBookedSlots","Appointment")', { doctorId: docId, date: date }, function(booked) {
+        var html = '';
+        if (booked.length === 0) {
+            html = '<span class="text-success"><i class="fa fa-check-circle"></i> All slots available!</span>';
+        } else {
+            html = '<strong style="color:#c0392b"><i class="fa fa-ban"></i> Booked Slots:</strong><br/>';
+            $.each(booked, function(i, s) {
+                html += '<span style="display:inline-block;background:#fde8e8;color:#c0392b;padding:2px 8px;border-radius:10px;margin:2px;font-size:12px">' + s + '</span>';
+            });
+        }
+        $("#bookedSlotsList").html(html);
+
+        // Mark booked slots in dropdown
+        $("#timeSlot option").each(function() {
+            var slotVal = $(this).val();
+            if ($.inArray(slotVal, booked) !== -1) {
+                $(this).text(slotVal + ' (Booked)');
+                $(this).css('color','#c0392b');
+            } else {
+                $(this).text(slotVal);
+                $(this).css('color','');
+            }
+        });
+    });
+}
+$("#doctorSelect, #aptDate").on("change", checkSlots);
+$(document).ready(function() { checkSlots(); });
+</script>
+}

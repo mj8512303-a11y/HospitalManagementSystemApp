@@ -1,0 +1,183 @@
+﻿@{
+    ViewBag.Title = "Login";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login - Hospital Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/3.4.1/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a3c5e 0%, #2980b9 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #1a3c5e, #2980b9);
+            padding: 30px;
+            text-align: center;
+            color: #fff;
+        }
+
+            .login-header i {
+                font-size: 48px;
+                opacity: 0.9;
+            }
+
+            .login-header h3 {
+                margin: 10px 0 4px;
+                font-size: 20px;
+                font-weight: 700;
+            }
+
+            .login-header p {
+                margin: 0;
+                font-size: 12px;
+                opacity: 0.8;
+            }
+
+        .login-body {
+            padding: 28px 30px 24px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 13px;
+            color: #444;
+        }
+
+        .input-group-addon {
+            background: #2980b9;
+            color: #fff;
+            border: none;
+        }
+
+        .form-control {
+            border: 1px solid #dde3ea;
+            font-size: 13px;
+            height: 40px;
+        }
+
+            .form-control:focus {
+                border-color: #2980b9;
+                box-shadow: 0 0 0 2px rgba(41,128,185,0.15);
+            }
+
+        .btn-login {
+            background: linear-gradient(135deg, #1a3c5e, #2980b9);
+            color: #fff;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+        }
+
+            .btn-login:hover {
+                opacity: 0.9;
+                transform: translateY(-1px);
+            }
+
+        .alert {
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .login-footer {
+            text-align: center;
+            padding: 12px;
+            background: #f8f9fa;
+            font-size: 12px;
+            color: #999;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-box">
+            <div class="login-header">
+                <i class="fa fa-hospital-o"></i>
+                <h3>Hospital Management System</h3>
+                <p>Sign in to your account</p>
+            </div>
+            <div class="login-body">
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="fa fa-check-circle"></i> @TempData["Success"]
+                    </div>
+                }
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger">
+                        <i class="fa fa-times-circle"></i> @ViewBag.Error
+                    </div>
+                }
+
+                @using (Html.BeginForm("Login", "Account", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="form-group">
+                        <label>Username</label>
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-user"></i></span>
+                            <input type="text" name="username" class="form-control" placeholder="Enter username" required />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+                            <input type="password" name="password" class="form-control" placeholder="Enter password" required />
+                        </div>
+                    </div>
+                    <div style="margin-top:20px">
+                        <button type="submit" class="btn-login">
+                            <i class="fa fa-sign-in"></i> Sign In
+                        </button>
+                    </div>
+                }
+
+                <div style="margin-top:14px;text-align:center;font-size:12px;color:#999">
+                    First time? <a href="@Url.Action("Setup","Account")">Setup admin account</a>
+                </div>
+            </div>
+            <div class="login-footer">
+                &copy; @DateTime.Now.Year Hospital Management System
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</body>
+</html>

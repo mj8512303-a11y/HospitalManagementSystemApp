@@ -1,0 +1,95 @@
+@model HospitalMS.Models.Hospital
+@{
+    ViewBag.Title = "Hospital Details";
+    ViewBag.ActiveMenu = "Hospital";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header-box">
+    <h3><i class="fa fa-eye"></i> Hospital Details</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Hospital</a></li>
+        <li class="active">Details</li>
+    </ol>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card-box text-center">
+            @if (!string.IsNullOrEmpty(Model.LogoPath))
+            {
+                <img src="@Model.LogoPath" style="height:100px;width:100px;border-radius:50%;object-fit:cover;border:3px solid #2980b9" />
+            }
+            else
+            {
+                <i class="fa fa-hospital-o" style="font-size:80px;color:#2980b9"></i>
+            }
+            <h4 style="margin-top:12px;color:#2c3e50"><strong>@Model.Name</strong></h4>
+            <p class="text-muted">@Model.RegistrationNo</p>
+            @if (Model.IsActive)
+            { <span class="badge-active">Active</span> }
+            else
+            { <span class="badge-inactive">Inactive</span> }
+            <hr />
+            <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-warning btn-sm">
+                <i class="fa fa-pencil"></i> Edit
+            </a>
+            <a href="@Url.Action("Index")" class="btn btn-default btn-sm">
+                <i class="fa fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-info-circle"></i> Hospital Information</div>
+            <table class="table table-bordered">
+                <tr>
+                    <th style="width:30%;background:#f8f9fa">Hospital Name</th>
+                    <td>@Model.Name</td>
+                </tr>
+                <tr>
+                    <th style="background:#f8f9fa">Registration No</th>
+                    <td>@Model.RegistrationNo</td>
+                </tr>
+                <tr>
+                    <th style="background:#f8f9fa">Address</th>
+                    <td>@Model.Address</td>
+                </tr>
+                <tr>
+                    <th style="background:#f8f9fa">Contact No</th>
+                    <td>@Model.ContactNo</td>
+                </tr>
+                <tr>
+                    <th style="background:#f8f9fa">Email</th>
+                    <td>@Model.Email</td>
+                </tr>
+                <tr>
+                    <th style="background:#f8f9fa">Website</th>
+                    <td>@Model.Website</td>
+                </tr>
+                <tr>
+                    <th style="background:#f8f9fa">Working Days</th>
+                    <td>@Model.WorkingDays</td>
+                </tr>
+                <tr>
+                    <th style="background:#f8f9fa">Created At</th>
+                    <td>@Model.CreatedAt.ToString("dd MMM yyyy")</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-bar-chart"></i> Overview</div>
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <div style="padding:15px;background:#eaf4fb;border-radius:8px">
+                        <div style="font-size:24px;font-weight:700;color:#2980b9">@(Model.Branches?.Count ?? 0)</div>
+                        <div style="font-size:12px;color:#666">Branches</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

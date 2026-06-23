@@ -1,0 +1,81 @@
+@model HospitalMS.Models.Salary
+@{
+    ViewBag.Title = "Salary Details";
+    ViewBag.ActiveMenu = "Salary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-eye"></i> Salary Details</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Salary</a></li>
+        <li class="active">Details</li>
+    </ol>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card-box text-center">
+            @if (!string.IsNullOrEmpty((string)ViewBag.Photo))
+            {<img src="@ViewBag.Photo" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #2980b9;margin-bottom:12px" />}
+            else
+            {<div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#1a3c5e,#2980b9);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:38px;font-weight:700;margin-bottom:12px">@Model.EmployeeName[0].ToString().ToUpper()</div>}
+
+            <h4 style="color:#2c3e50;font-weight:700">@Model.EmployeeName</h4>
+            <p class="text-muted">@ViewBag.Designation</p>
+            @if (Model.EmployeeType=="Staff"){<span class="label label-primary">Staff</span>}else{<span class="label label-success">Doctor</span>}
+
+            <hr/>
+            <div style="font-size:13px;color:#666">@(new DateTime(Model.Year,Model.Month,1).ToString("MMMM yyyy"))</div>
+            @if (Model.IsPaid)
+            { <p style="margin-top:8px"><span class="badge-active" style="font-size:13px">PAID</span></p> }
+            else
+            { <p style="margin-top:8px"><span class="badge-pending" style="font-size:13px">UNPAID</span></p> }
+
+            <hr/>
+            <a href="@Url.Action("Edit",new{id=Model.Id})" class="btn btn-warning btn-sm btn-block"><i class="fa fa-pencil"></i> Edit</a>
+            <a href="@Url.Action("Payslip",new{id=Model.Id})" target="_blank" class="btn btn-primary btn-sm btn-block" style="margin-top:5px"><i class="fa fa-file-text-o"></i> View Payslip</a>
+            <a href="@Url.Action("Index",new{month=Model.Month,year=Model.Year})" class="btn btn-default btn-sm btn-block" style="margin-top:5px"><i class="fa fa-arrow-left"></i> Back</a>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-money"></i> Salary Breakdown</div>
+            <table class="table table-bordered">
+                <tr><th style="background:#f8f9fa;width:40%">Basic Salary</th><td>Rs. @Model.BasicSalary.ToString("N0")</td></tr>
+                <tr><th style="background:#f8f9fa">Allowances</th><td class="text-success">+ Rs. @Model.Allowances.ToString("N0")</td></tr>
+                <tr><th style="background:#f8f9fa">Bonus</th><td class="text-success">+ Rs. @Model.Bonus.ToString("N0")</td></tr>
+                <tr><th style="background:#f8f9fa">Overtime</th><td class="text-success">+ Rs. @Model.OvertimeAmount.ToString("N0")</td></tr>
+                <tr><th style="background:#f8f9fa">Deductions</th><td class="text-danger">− Rs. @Model.Deductions.ToString("N0")</td></tr>
+                <tr style="background:#eaf4fb"><th style="font-size:15px">Net Salary</th><td style="font-size:18px;font-weight:700;color:#2980b9">Rs. @Model.NetSalary.ToString("N0")</td></tr>
+            </table>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card-box">
+                    <div class="card-title"><i class="fa fa-calendar-check-o"></i> Attendance</div>
+                    <table class="table table-bordered">
+                        <tr><th style="background:#f8f9fa">Present Days</th><td class="text-success">@Model.PresentDays</td></tr>
+                        <tr><th style="background:#f8f9fa">Absent Days</th><td class="text-danger">@Model.AbsentDays</td></tr>
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-box">
+                    <div class="card-title"><i class="fa fa-info-circle"></i> Payment Info</div>
+                    <table class="table table-bordered">
+                        <tr><th style="background:#f8f9fa">Status</th><td>@(Model.IsPaid?"Paid":"Unpaid")</td></tr>
+                        <tr><th style="background:#f8f9fa">Payment Date</th><td>@(Model.PaymentDate.HasValue ? Model.PaymentDate.Value.ToString("dd MMM yyyy") : "Not paid yet")</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Remarks))
+        {
+            <div class="card-box">
+                <div class="card-title"><i class="fa fa-comment"></i> Remarks</div>
+                <p>@Model.Remarks</p>
+            </div>
+        }
+    </div>
+</div>

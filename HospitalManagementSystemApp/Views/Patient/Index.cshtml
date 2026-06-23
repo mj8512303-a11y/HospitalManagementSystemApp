@@ -1,0 +1,177 @@
+@model IEnumerable<HospitalMS.Models.Patient>
+@{
+    ViewBag.Title = "Patient Management";
+    ViewBag.ActiveMenu = "Patient";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header-box">
+    <h3><i class="fa fa-wheelchair"></i> Patient Management</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li class="active">Patients</li>
+    </ol>
+</div>
+
+<!-- Stats -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="stat-card stat-blue">
+            <div><div class="stat-number">@ViewBag.TotalPatients</div><div class="stat-label">Total Patients</div></div>
+            <i class="fa fa-wheelchair stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-green">
+            <div><div class="stat-number">@ViewBag.OPDPatients</div><div class="stat-label">OPD Patients</div></div>
+            <i class="fa fa-stethoscope stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-orange">
+            <div><div class="stat-number">@ViewBag.IPDPatients</div><div class="stat-label">IPD Patients</div></div>
+            <i class="fa fa-bed stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-teal">
+            <div><div class="stat-number">@ViewBag.TodayReg</div><div class="stat-label">Today Registered</div></div>
+            <i class="fa fa-calendar-plus-o stat-icon"></i>
+        </div>
+    </div>
+</div>
+
+<div class="card-box">
+    <div class="card-title">
+        <i class="fa fa-list"></i> All Patients
+        <a href="@Url.Action("Create")" class="btn btn-primary btn-sm pull-right">
+            <i class="fa fa-user-plus"></i> Register Patient
+        </a>
+    </div>
+
+    <!-- Filters -->
+    @using (Html.BeginForm("Index","Patient",FormMethod.Get))
+    {
+        <div class="row" style="margin-bottom:15px">
+            <div class="col-md-3">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                    <input type="text" name="search" value="@ViewBag.SearchVal"
+                           class="form-control" placeholder="Name / Phone / Email..." />
+                </div>
+            </div>
+            <div class="col-md-2">
+                @Html.DropDownList("branchId",(SelectList)ViewBag.BranchList,
+                    "-- All Branches --", new { @class = "form-control" })
+            </div>
+            <div class="col-md-2">
+                <select name="gender" class="form-control">
+                    <option value="">-- Gender --</option>
+                    <option value="Male"   @(ViewBag.GenderVal=="Male"?"selected":"")>Male</option>
+                    <option value="Female" @(ViewBag.GenderVal=="Female"?"selected":"")>Female</option>
+                    <option value="Other"  @(ViewBag.GenderVal=="Other"?"selected":"")>Other</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="patientType" class="form-control">
+                    <option value="">-- Type --</option>
+                    <option value="OPD" @(ViewBag.TypeVal=="OPD"?"selected":"")>OPD</option>
+                    <option value="IPD" @(ViewBag.TypeVal=="IPD"?"selected":"")>IPD</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa fa-search"></i> Search
+                </button>
+                <a href="@Url.Action("Index")" class="btn btn-default">
+                    <i class="fa fa-refresh"></i> Reset
+                </a>
+            </div>
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Patient ID</th>
+                    <th>Full Name</th>
+                    <th>Age / Gender</th>
+                    <th>Blood Group</th>
+                    <th>Phone</th>
+                    <th>Branch</th>
+                    <th>Type</th>
+                    <th>Reg. Date</th>
+                    <th style="width:155px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int sr = 1; }
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td>@(sr++)</td>
+                        <td>
+                            <span style="background:#eaf4fb;color:#2980b9;padding:3px 8px;border-radius:10px;font-weight:700;font-size:12px">
+                                P-@p.Id.ToString("D4")
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:8px">
+                                <div style="width:36px;height:36px;border-radius:50%;background:@(p.Gender=="Female"?"linear-gradient(135deg,#e91e8c,#f48fb1)":"linear-gradient(135deg,#1a3c5e,#2980b9)");display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;flex-shrink:0">
+                                    @p.FullName[0].ToString().ToUpper()
+                                </div>
+                                <div>
+                                    <strong>@p.FullName</strong>
+                                    @if (!string.IsNullOrEmpty(p.MedicalHistory))
+                                    {<br /><small class="text-muted" title="@p.MedicalHistory"><i class="fa fa-file-medical-alt"></i> Has medical history</small>}
+                                </div>
+                            </div>
+                        </td>
+                        <td>@p.Age yrs / @p.Gender</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(p.BloodGroup))
+                            {
+                                <span style="background:#e74c3c;color:#fff;padding:3px 9px;border-radius:10px;font-weight:700;font-size:12px">
+                                    @p.BloodGroup
+                                </span>
+                            }
+                            else { <span class="text-muted">-</span> }
+                        </td>
+                        <td><i class="fa fa-phone text-success"></i> @p.Phone</td>
+                        <td>
+                            @*@p.Branch?.Name*@@(p.Branch != null ?p.Branch.Name : "N/A")
+                                            </td>
+                        <td>
+                            @if (p.PatientType == "OPD")
+                            { <span class="label label-success">OPD</span> }
+                            else
+                            { <span class="label label-warning">IPD</span> }
+                        </td>
+                        <td>@p.RegistrationDate.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <a href="@Url.Action("Details",new{id=p.Id})" class="btn btn-info btn-sm" title="Details"><i class="fa fa-eye"></i></a>
+                            <a href="@Url.Action("Edit",new{id=p.Id})" class="btn btn-warning btn-sm" title="Edit"><i class="fa fa-pencil"></i></a>
+                            <a href="@Url.Action("Create","Appointment",new{patientId=p.Id})" class="btn btn-success btn-sm" title="Book Appointment"><i class="fa fa-calendar-plus-o"></i></a>
+                            <a href="@Url.Action("Delete",new{id=p.Id})" class="btn btn-danger btn-sm" title="Delete"
+                               onclick="return confirm('Delete patient: @p.FullName ?')"><i class="fa fa-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="10" class="text-center text-muted" style="padding:45px">
+                            <i class="fa fa-wheelchair" style="font-size:50px;opacity:0.2"></i>
+                            <p style="margin-top:12px;font-size:15px">No patients found.</p>
+                            <a href="@Url.Action("Create")" class="btn btn-primary">
+                                <i class="fa fa-user-plus"></i> Register First Patient
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,143 @@
+@model IEnumerable<HospitalMS.Models.Staff>
+@{
+    ViewBag.Title = "Staff Management";
+    ViewBag.ActiveMenu = "Staff";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-users"></i> Staff Management</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li class="active">Staff</li>
+    </ol>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="stat-card stat-blue">
+            <div><div class="stat-number">@ViewBag.TotalStaff</div><div class="stat-label">Total Staff</div></div>
+            <i class="fa fa-users stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-green">
+            <div><div class="stat-number">@ViewBag.ActiveStaff</div><div class="stat-label">Active</div></div>
+            <i class="fa fa-check-circle stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-orange">
+            <div><div class="stat-number">@ViewBag.OnLeave</div><div class="stat-label">On Leave</div></div>
+            <i class="fa fa-calendar-times-o stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-red">
+            <div><div class="stat-number">@ViewBag.Terminated</div><div class="stat-label">Terminated</div></div>
+            <i class="fa fa-times-circle stat-icon"></i>
+        </div>
+    </div>
+</div>
+
+<div class="card-box">
+    <div class="card-title">
+        <i class="fa fa-list"></i> All Staff Members
+        <a href="@Url.Action("Create")" class="btn btn-primary btn-sm pull-right">
+            <i class="fa fa-user-plus"></i> Add Staff
+        </a>
+    </div>
+
+    @using (Html.BeginForm("Index","Staff",FormMethod.Get)) {
+        <div class="row" style="margin-bottom:15px">
+            <div class="col-md-3">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                    <input type="text" name="search" value="@ViewBag.SearchVal" class="form-control" placeholder="Name / CNIC / Phone..." />
+                </div>
+            </div>
+            <div class="col-md-2">
+                @Html.DropDownList("branchId",(SelectList)ViewBag.BranchList,"-- All Branches --",new{@class="form-control"})
+            </div>
+            <div class="col-md-2">
+                @Html.DropDownList("deptId",(SelectList)ViewBag.DeptList,"-- All Depts --",new{@class="form-control"})
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-control">
+                    <option value="">-- All Status --</option>
+                    <option value="Active"     @(ViewBag.StatusVal=="Active"?"selected":"")>Active</option>
+                    <option value="OnLeave"    @(ViewBag.StatusVal=="OnLeave"?"selected":"")>On Leave</option>
+                    <option value="Terminated" @(ViewBag.StatusVal=="Terminated"?"selected":"")>Terminated</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Search</button>
+                <a href="@Url.Action("Index")" class="btn btn-default"><i class="fa fa-refresh"></i> Reset</a>
+            </div>
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>#</th><th>Photo</th><th>Full Name</th><th>CNIC</th>
+                    <th>Department</th><th>Designation</th><th>Shift</th>
+                    <th>Phone</th><th>Join Date</th><th>Status</th>
+                    <th style="width:170px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int sr = 1; }
+                @foreach (var s in Model)
+                {
+                    <tr>
+                        <td>@(sr++)</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(s.PhotoPath))
+                            {
+                                <img src="@s.PhotoPath" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #2980b9" />
+                            }
+                            else
+                            {
+                                <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#2980b9,#1a3c5e);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px">
+                                    @s.FullName[0].ToString().ToUpper()
+                                </div>
+                            }
+                        </td>
+                        <td>
+                            <strong>@s.FullName</strong>
+                            <br /><small class="text-muted"><i class="fa fa-code-fork"></i> @(s.Branch != null ? s.Branch.Name : "N/A")</small>
+                        </td>
+                        <td>@s.CNIC</td>
+                        <td>@(s.Branch != null ? s.Branch.Name : "N/A")</td>
+                        <td><span class="label label-default">@(s.Branch != null ? s.Branch.Name : "N/A")</span></td>
+                        <td><i class="fa fa-clock-o text-warning"></i> @(s.Branch != null ? s.Branch.Name : "N/A")</td>
+                        <td><i class="fa fa-phone text-success"></i> @s.Phone</td>
+                        <td>@s.JoinDate.ToString("dd MMM yyyy")</td>
+                        <td>
+                            @if (s.Status=="Active") { <span class="badge-active">Active</span> }
+                            else if (s.Status=="OnLeave") { <span class="badge-pending">On Leave</span> }
+                            else { <span class="badge-inactive">Terminated</span> }
+                        </td>
+                        <td>
+                            <a href="@Url.Action("Details",new{id=s.Id})" class="btn btn-info btn-sm" title="Details"><i class="fa fa-eye"></i></a>
+                            <a href="@Url.Action("Edit",new{id=s.Id})" class="btn btn-warning btn-sm" title="Edit"><i class="fa fa-pencil"></i></a>
+                            <a href="@Url.Action("ToggleStatus",new{id=s.Id})" class="btn btn-default btn-sm" title="Toggle Status"><i class="fa fa-refresh"></i></a>
+                            <a href="@Url.Action("Delete",new{id=s.Id})" class="btn btn-danger btn-sm" title="Delete" onclick="return confirm('Delete staff member: @s.FullName ?')"><i class="fa fa-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="11" class="text-center text-muted" style="padding:40px">
+                            <i class="fa fa-users" style="font-size:45px;opacity:0.25"></i>
+                            <p style="margin-top:12px;font-size:15px">No staff members found.</p>
+                            <a href="@Url.Action("Create")" class="btn btn-primary"><i class="fa fa-user-plus"></i> Add First Staff</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

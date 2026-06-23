@@ -1,0 +1,58 @@
+﻿@model HospitalMS.Models.Department
+@{
+    ViewBag.Title = "Department Details";
+    ViewBag.ActiveMenu = "Department";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-eye"></i> Department Details</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Department</a></li>
+        <li class="active">Details</li>
+    </ol>
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="card-box text-center">
+            <div style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#16a085,#1abc9c);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
+                <i class="fa fa-sitemap" style="font-size:38px;color:#fff"></i>
+            </div>
+            <h4 style="color:#2c3e50;font-weight:700">@Model.Name</h4>
+            <p class="text-muted">@Model.Branch?.Name</p>
+            @if (Model.IsActive)
+            {<span class="badge-active">Active</span> }
+            else
+            { <span class="badge-inactive">Inactive</span>}
+            <div class="row text-center" style="margin-top:18px">
+                <div class="col-xs-6" style="border-right:1px solid #eee;padding:12px">
+                    <div style="font-size:24px;font-weight:700;color:#8e44ad">@ViewBag.StaffCount</div>
+                    <div style="font-size:11px;color:#888">Staff</div>
+                </div>
+                <div class="col-xs-6" style="padding:12px">
+                    <div style="font-size:24px;font-weight:700;color:#27ae60">@ViewBag.DoctorCount</div>
+                    <div style="font-size:11px;color:#888">Doctors</div>
+                </div>
+            </div>
+            <hr />
+            <a href="@Url.Action("Edit",new{id=Model.Id})" class="btn btn-warning btn-sm btn-block"><i class="fa fa-pencil"></i> Edit</a>
+            <a href="@Url.Action("Index")" class="btn btn-default btn-sm btn-block" style="margin-top:5px"><i class="fa fa-arrow-left"></i> Back</a>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-info-circle"></i> Department Information</div>
+            <table class="table table-bordered">
+                <tr><th style="background:#f8f9fa;width:35%">Branch</th><td>@Model.Branch?.Name</td></tr>
+                <tr><th style="background:#f8f9fa">Department Name</th><td><strong>@Model.Name</strong></td></tr>
+                <tr><th style="background:#f8f9fa">Department Head</th><td>@(string.IsNullOrEmpty(Model.DepartmentHead)?"N/A":Model.DepartmentHead)</td></tr>
+                <tr><th style="background:#f8f9fa">Description</th><td>@(string.IsNullOrEmpty(Model.Description)?"N/A":Model.Description)</td></tr>
+                <tr><th style="background:#f8f9fa">Status</th><td>@if (Model.IsActive)
+                {<span class="badge-active">Active</span>}
+                else
+                {<span class="badge-inactive">Inactive</span>}</td></tr>
+                <tr><th style="background:#f8f9fa">Created On</th><td>@Model.CreatedAt.ToString("dd MMM yyyy")</td></tr>
+            </table>
+        </div>
+    </div>
+</div>

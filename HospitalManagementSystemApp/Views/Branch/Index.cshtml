@@ -1,0 +1,146 @@
+﻿@model IEnumerable<HospitalMS.Models.Branch>
+@{
+    ViewBag.Title = "Branch Management";
+    ViewBag.ActiveMenu = "Branch";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header-box">
+    <h3><i class="fa fa-code-fork"></i> Branch Management</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li class="active">Branch</li>
+    </ol>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="stat-card stat-blue">
+            <div>
+                <div class="stat-number">@Model.Count()</div>
+                <div class="stat-label">Total Branches</div>
+            </div>
+            <i class="fa fa-code-fork stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-green">
+            <div>
+                <div class="stat-number">@Model.Count(b => b.IsActive)</div>
+                <div class="stat-label">Active Branches</div>
+            </div>
+            <i class="fa fa-check-circle stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-red">
+            <div>
+                <div class="stat-number">@Model.Count(b => !b.IsActive)</div>
+                <div class="stat-label">Inactive Branches</div>
+            </div>
+            <i class="fa fa-times-circle stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-purple">
+            <div>
+                <div class="stat-number">@Model.Select(b => b.HospitalId).Distinct().Count()</div>
+                <div class="stat-label">Hospitals</div>
+            </div>
+            <i class="fa fa-building stat-icon"></i>
+        </div>
+    </div>
+</div>
+
+<div class="card-box">
+    <div class="card-title">
+        <i class="fa fa-list"></i> All Branches
+        <a href="@Url.Action("Create")" class="btn btn-primary btn-sm pull-right">
+            <i class="fa fa-plus"></i> Add Branch
+        </a>
+    </div>
+
+    <div class="row" style="margin-bottom:15px">
+        <div class="col-md-4">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search branch..." />
+        </div>
+        <div class="col-md-3">
+            <select id="statusFilter" class="form-control">
+                <option value="">-- All Status --</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped" id="branchTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Hospital</th>
+                    <th>Branch Name</th>
+                    <th>Code</th>
+                    <th>Location</th>
+                    <th>Contact</th>
+                    <th>Working Hours</th>
+                    <th>Status</th>
+                    <th style="width:160px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int i = 1; }
+                @foreach (var b in Model)
+                {
+                    <tr>
+                        <td>@(i++)</td>
+                        <td><i class="fa fa-hospital-o text-primary"></i> @*@b.Hospital?.Name*@@(b.Hospital != null ? b.Hospital.Name : "N/A") </td>
+                        <td><strong>@b.Name</strong></td>
+                        <td><span class="label label-default">@b.Code</span></td>
+                        <td><i class="fa fa-map-marker text-danger"></i> @b.Location</td>
+                        <td>@b.ContactNo</td>
+                        <td><i class="fa fa-clock-o"></i> @b.WorkingHours</td>
+                        <td>
+                            @if (b.IsActive)
+                            {<span class="badge-active">Active</span> }
+                            else
+                            { <span class="badge-inactive">Inactive</span>}
+                        </td>
+                        <td>
+                            <a href="@Url.Action("Details", new { id = b.Id })" class="btn btn-info btn-sm" title="Details"><i class="fa fa-eye"></i></a>
+                            <a href="@Url.Action("Edit", new { id = b.Id })" class="btn btn-warning btn-sm" title="Edit"><i class="fa fa-pencil"></i></a>
+                            <a href="@Url.Action("ToggleStatus", new { id = b.Id })" class="btn btn-default btn-sm" title="Toggle Status"><i class="fa fa-refresh"></i></a>
+                            <a href="@Url.Action("Delete", new { id = b.Id })" class="btn btn-danger btn-sm" title="Delete" onclick="return confirm('Delete this branch?')"><i class="fa fa-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="9" class="text-center text-muted" style="padding:40px">
+                            <i class="fa fa-code-fork" style="font-size:40px;opacity:0.3"></i>
+                            <p style="margin-top:10px">No branches found. <a href="@Url.Action("Create")">Add Branch</a></p>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    $("#searchInput").on("keyup", function () {
+        var val = $(this).val().toLowerCase();
+        $("#branchTable tbody tr").filter(function () {
+            $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
+        });
+    });
+    $("#statusFilter").on("change", function () {
+        var val = $(this).val();
+        $("#branchTable tbody tr").each(function () {
+            $(this).toggle(val === "" || $(this).find("td:eq(7)").text().trim() === val);
+        });
+    });
+    </script>
+}

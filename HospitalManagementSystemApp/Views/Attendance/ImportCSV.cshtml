@@ -1,0 +1,111 @@
+@{
+    ViewBag.Title = "Import Attendance from Machine";
+    ViewBag.ActiveMenu = "Attendance";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-upload"></i> Import Attendance from Biometric Machine (CSV)</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Attendance</a></li>
+        <li class="active">Import CSV</li>
+    </ol>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-file-excel-o"></i> Upload CSV File</div>
+            @using (Html.BeginForm("ImportCSV","Attendance",FormMethod.Post,new{enctype="multipart/form-data"}))
+            {
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    <label class="control-label">Employee Type</label>
+                    <select name="empType" class="form-control" style="max-width:250px">
+                        <option value="Staff">Staff</option>
+                        <option value="Doctor">Doctor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="control-label">Select CSV File from Biometric Machine</label>
+                    <div style="border:2px dashed #2980b9;border-radius:10px;padding:30px;text-align:center;background:#f8fbff;cursor:pointer" onclick="document.getElementById('csvFile').click()">
+                        <i class="fa fa-cloud-upload" style="font-size:40px;color:#2980b9;opacity:0.6"></i>
+                        <p style="margin:10px 0 4px;color:#2980b9;font-weight:600">Click to select CSV file</p>
+                        <p style="font-size:12px;color:#999">Supported: .csv files exported from biometric machine</p>
+                        <div id="fileNameDisplay" style="margin-top:8px;font-size:13px;color:#27ae60;font-weight:600"></div>
+                    </div>
+                    <input type="file" id="csvFile" name="csvFile" accept=".csv" style="display:none" onchange="showFileName(this)" />
+                </div>
+                <hr />
+                <button type="submit" class="btn btn-primary btn-lg"><i class="fa fa-upload"></i> Import Now</button>
+                <a href="@Url.Action("Index")" class="btn btn-default btn-lg"><i class="fa fa-arrow-left"></i> Back</a>
+            }
+        </div>
+
+        @if (ViewBag.Errors != null && ((List<string>)ViewBag.Errors).Any())
+        {
+            <div class="card-box">
+                <div class="card-title text-danger"><i class="fa fa-exclamation-triangle"></i> Import Warnings</div>
+                @foreach (var err in (List<string>)ViewBag.Errors)
+                { <p class="text-warning"><i class="fa fa-warning"></i> @err</p> }
+            </div>
+        }
+    </div>
+
+    <div class="col-md-5">
+        <div class="card-box">
+            <div class="card-title"><i class="fa fa-info-circle"></i> CSV Format Guide</div>
+            <p style="font-size:13px;color:#555">Your CSV file must follow this format:</p>
+            <div style="background:#1e2a3a;border-radius:8px;padding:14px;font-family:monospace;font-size:12px;color:#a8e063;overflow-x:auto">
+                <div style="color:#7f8fa4;margin-bottom:6px"># CSV Header (required)</div>
+                EmployeeId,Date,Status,InTime,OutTime<br/>
+                <span style="color:#e8d44d">1,2024-06-10,Present,08:00,17:00</span><br/>
+                <span style="color:#e8d44d">2,2024-06-10,Absent,,</span><br/>
+                <span style="color:#e8d44d">3,2024-06-10,Late,09:30,17:00</span><br/>
+                <span style="color:#e8d44d">4,2024-06-10,HalfDay,08:00,13:00</span><br/>
+                <span style="color:#e8d44d">5,2024-06-10,Leave,,</span>
+            </div>
+            <hr />
+            <p style="font-size:13px"><strong>Status Values:</strong></p>
+            <ul style="font-size:13px;line-height:2.2">
+                <li><span class="badge-active">Present</span> — Full day present</li>
+                <li><span class="badge-inactive">Absent</span> — Did not come</li>
+                <li><span class="badge-pending">Late</span> — Came after 9:15 AM</li>
+                <li><span class="label label-warning">HalfDay</span> — Less than 4 hours</li>
+                <li><span class="label label-info">Leave</span> — On approved leave</li>
+            </ul>
+            <hr />
+            <div style="background:#d4edda;border-radius:6px;padding:12px;font-size:13px">
+                <strong><i class="fa fa-download text-success"></i> Download Sample CSV:</strong><br/>
+                <a href="#" onclick="downloadSample();return false" class="btn btn-success btn-sm" style="margin-top:8px">
+                    <i class="fa fa-file-excel-o"></i> Download Sample File
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function showFileName(input) {
+    if (input.files && input.files[0]) {
+        document.getElementById('fileNameDisplay').textContent = '✓ ' + input.files[0].name;
+    }
+}
+
+function downloadSample() {
+    var csv = "EmployeeId,Date,Status,InTime,OutTime\n";
+    csv += "1," + new Date().toISOString().split('T')[0] + ",Present,08:00,17:00\n";
+    csv += "2," + new Date().toISOString().split('T')[0] + ",Absent,,\n";
+    csv += "3," + new Date().toISOString().split('T')[0] + ",Late,09:30,17:00\n";
+    csv += "4," + new Date().toISOString().split('T')[0] + ",HalfDay,08:00,13:00\n";
+    csv += "5," + new Date().toISOString().split('T')[0] + ",Leave,,\n";
+
+    var blob = new Blob([csv], {type:'text/csv'});
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'attendance_sample.csv';
+    link.click();
+}
+</script>
+}

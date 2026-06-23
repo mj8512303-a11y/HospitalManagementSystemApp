@@ -1,0 +1,197 @@
+﻿@model IEnumerable<HospitalMS.Models.Billing>
+@{
+    ViewBag.Title = "Billing & Payment";
+    ViewBag.ActiveMenu = "Billing";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    decimal totalAmount = ViewBag.TotalAmount;
+    decimal paidAmount = ViewBag.PaidAmount;
+    decimal pendingAmount = ViewBag.PendingAmount;
+    double paidPct = totalAmount > 0 ? Math.Round((double)(paidAmount / totalAmount) * 100, 1) : 0;
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-file-text-o"></i> Billing & Payment Management</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li class="active">Billing & Payment</li>
+    </ol>
+</div>
+
+<!-- Stats Row -->
+<div class="row">
+    <div class="col-md-2">
+        <div class="stat-card stat-blue">
+            <div><div class="stat-number">@ViewBag.TotalBills</div><div class="stat-label">Total Bills</div></div>
+            <i class="fa fa-file-text-o stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-green">
+            <div><div class="stat-number">@ViewBag.PaidBills</div><div class="stat-label">Fully Paid</div></div>
+            <i class="fa fa-check-circle stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-orange">
+            <div><div class="stat-number">@ViewBag.PartialBills</div><div class="stat-label">Partial Paid</div></div>
+            <i class="fa fa-adjust stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-red">
+            <div><div class="stat-number">@ViewBag.UnpaidBills</div><div class="stat-label">Unpaid</div></div>
+            <i class="fa fa-clock-o stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-teal">
+            <div style="font-size:16px;font-weight:700">Rs. @paidAmount.ToString("N0")</div>
+            <div class="stat-label">Total Collected</div>
+            <i class="fa fa-money stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card stat-purple">
+            <div style="font-size:16px;font-weight:700">Rs. @pendingAmount.ToString("N0")</div>
+            <div class="stat-label">Pending Amount</div>
+            <i class="fa fa-exclamation-circle stat-icon"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue Bar -->
+<div class="card-box" style="padding:14px 20px">
+    <div style="display:flex;align-items:center;gap:14px">
+        <div style="font-size:13px;color:#666;white-space:nowrap"><strong>Collection Rate:</strong></div>
+        <div style="flex:1;background:#eee;border-radius:5px;height:18px;overflow:hidden">
+            <div style="width:@paidPct%;background:@(paidPct>=75?"#27ae60":paidPct>=50?"#f39c12":"#e74c3c");height:100%;border-radius:5px;transition:width 0.5s"></div>
+        </div>
+        <div style="font-size:16px;font-weight:700;color:@(paidPct>=75?"#27ae60":paidPct>=50?"#f39c12":"#e74c3c");white-space:nowrap">@paidPct%</div>
+        <div style="font-size:12px;color:#999;white-space:nowrap">Total Billed: Rs. @totalAmount.ToString("N0")</div>
+    </div>
+</div>
+
+<div class="card-box">
+    <div class="card-title">
+        <i class="fa fa-list"></i> All Bills
+        <a href="@Url.Action("Create")" class="btn btn-primary btn-sm pull-right">
+            <i class="fa fa-plus"></i> Create New Bill
+        </a>
+    </div>
+
+    <!-- Filters -->
+    @using (Html.BeginForm("Index", "Billing", FormMethod.Get))
+    {
+        <div class="row" style="margin-bottom:15px">
+            <div class="col-md-3">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                    <input type="text" name="search" value="@ViewBag.SearchVal" class="form-control" placeholder="Patient name / Invoice no..." />
+                </div>
+            </div>
+            <div class="col-md-2">
+                @Html.DropDownList("branchId", (SelectList)ViewBag.BranchList, "-- All Branches --", new { @class = "form-control" })
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-control">
+                    <option value="">-- All Status --</option>
+                    <option value="Paid" @(ViewBag.StatusVal == "Paid" ? "selected" : "")>Paid</option>
+                    <option value="Partial" @(ViewBag.StatusVal == "Partial" ? "selected" : "")>Partial</option>
+                    <option value="Pending" @(ViewBag.StatusVal == "Pending" ? "selected" : "")>Pending</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="dateFrom" value="@ViewBag.DateFromVal" class="form-control" placeholder="From" title="From Date" />
+            </div>
+            <div class="col-md-1">
+                <input type="date" name="dateTo" value="@ViewBag.DateToVal" class="form-control" placeholder="To" title="To Date" />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Search</button>
+                <a href="@Url.Action("Index")" class="btn btn-default"><i class="fa fa-refresh"></i></a>
+            </div>
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Invoice No</th>
+                    <th>Patient</th>
+                    <th>Branch</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Paid</th>
+                    <th>Remaining</th>
+                    <th>Mode</th>
+                    <th>Status</th>
+                    <th style="width:160px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int sr = 1; }
+                @foreach (var b in Model)
+                {
+                    <tr>
+                        <td>@(sr++)</td>
+                        <td>
+                            <strong style="color:#2980b9">@b.InvoiceNo</strong>
+                        </td>
+                        <td>
+                            <i class="fa fa-wheelchair text-primary"></i>
+                            @(b.Patient != null ? b.Patient.FullName : "N/A")
+                        </td>
+                        <td>@(b.Branch != null ? b.Branch.Name : "N/A")</td>
+                        <td>@b.BillingDate.ToString("dd MMM yyyy")</td>
+                        <td><strong>Rs. @b.TotalAmount.ToString("N0")</strong></td>
+                        <td class="text-success">Rs. @b.PaidAmount.ToString("N0")</td>
+                        <td class="@(b.RemainingAmount>0?"text-danger":"text-success")">
+                            Rs. @b.RemainingAmount.ToString("N0")
+                        </td>
+                        <td>
+                            <span class="label label-default">@b.PaymentMode</span>
+                        </td>
+                        <td>
+                            @if (b.Status == "Paid")
+                            {<span class="badge-active">Paid</span>}
+                            else if (b.Status == "Partial")
+                            {<span class="badge-pending">Partial</span>}
+                            else
+                            {<span class="badge-inactive">Pending</span>}
+                        </td>
+                        <td>
+                            <a href="@Url.Action("Details",new{id=b.Id})" class="btn btn-info btn-sm" title="Details"><i class="fa fa-eye"></i></a>
+                            <a href="@Url.Action("Edit",new{id=b.Id})" class="btn btn-warning btn-sm" title="Edit"><i class="fa fa-pencil"></i></a>
+                            <a href="@Url.Action("Invoice",new{id=b.Id})" class="btn btn-primary btn-sm" title="Print Invoice" target="_blank"><i class="fa fa-print"></i></a>
+                            <a href="@Url.Action("Delete",new{id=b.Id})" class="btn btn-danger btn-sm" title="Delete"
+                               onclick="return confirm('Delete invoice @b.InvoiceNo ?')"><i class="fa fa-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="11" class="text-center text-muted" style="padding:45px">
+                            <i class="fa fa-file-text-o" style="font-size:50px;opacity:0.2"></i>
+                            <p style="margin-top:12px">No bills found.</p>
+                            <a href="@Url.Action("Create")" class="btn btn-primary"><i class="fa fa-plus"></i> Create First Bill</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            @if (Model.Any())
+            {
+                <tfoot>
+                    <tr style="background:#f8f9fa;font-weight:700">
+                        <td colspan="5" class="text-right">Page Total:</td>
+                        <td>Rs. @Model.Sum(x => x.TotalAmount).ToString("N0")</td>
+                        <td class="text-success">Rs. @Model.Sum(x => x.PaidAmount).ToString("N0")</td>
+                        <td class="text-danger">Rs. @Model.Sum(x => x.RemainingAmount).ToString("N0")</td>
+                        <td colspan="3"></td>
+                    </tr>
+                </tfoot>
+            }
+        </table>
+    </div>
+</div>

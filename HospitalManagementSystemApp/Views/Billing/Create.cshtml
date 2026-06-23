@@ -1,0 +1,226 @@
+﻿@model HospitalMS.Models.Billing
+@{
+    ViewBag.Title = "Create Bill";
+    ViewBag.ActiveMenu = "Billing";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="page-header-box">
+    <h3><i class="fa fa-plus"></i> Create New Bill</h3>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")">Dashboard</a></li>
+        <li><a href="@Url.Action("Index")">Billing</a></li>
+        <li class="active">Create</li>
+    </ol>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger alert-dismissible">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <i class="fa fa-exclamation-circle"></i> <strong>Fix errors:</strong>
+        <ul style="margin:5px 0 0 18px">
+            @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@e.ErrorMessage</li>
+}
+        </ul>
+    </div>
+}
+
+@using (Html.BeginForm("Create", "Billing", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="row">
+        <!-- LEFT: Bill Form -->
+        <div class="col-md-8">
+            <!-- Patient & Bill Info -->
+            <div class="card-box">
+                <div class="card-title"><i class="fa fa-info-circle"></i> Bill Information</div>
+                <div class="row">
+                    <div class="col-md-5">
+                        <div class="form-group">
+                            <label class="control-label">Patient <span class="text-danger">*</span></label>
+                            @Html.DropDownList("PatientId", (SelectList)ViewBag.PatientId, "-- Select Patient --", new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.PatientId, "", new { @class = "text-danger small" })
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="control-label">Branch <span class="text-danger">*</span></label>
+                            @Html.DropDownList("BranchId", (SelectList)ViewBag.BranchId, "-- Select Branch --", new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.BranchId, "", new { @class = "text-danger small" })
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="control-label">Billing Date</label>
+                            @Html.TextBoxFor(m => m.BillingDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="control-label">Invoice No</label>
+                            <input type="text" name="InvoiceNo" value="@ViewBag.InvoiceNo" class="form-control" readonly style="background:#f8f9fa;font-weight:700;color:#2980b9" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="control-label">Payment Mode</label>
+                            @Html.DropDownListFor(m => m.PaymentMode,
+                                new SelectList(new[] { "Cash", "Card", "Online Transfer", "Cheque" }, "Cash"),
+                                new { @class = "form-control" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charges -->
+            <div class="card-box">
+                <div class="card-title"><i class="fa fa-list-alt"></i> Bill Charges</div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.ConsultationFee, new { @class = "control-label" })
+                            <div class="input-group">
+                                <span class="input-group-addon">Rs.</span>
+                                @Html.TextBoxFor(m => m.ConsultationFee, new { @class = "form-control calc-input", type = "number", min = "0", step = "10", id = "ConsultationFee" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.TestCharges, new { @class = "control-label" })
+                            <div class="input-group">
+                                <span class="input-group-addon">Rs.</span>
+                                @Html.TextBoxFor(m => m.TestCharges, new { @class = "form-control calc-input", type = "number", min = "0", step = "10" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.MedicineCharges, new { @class = "control-label" })
+                            <div class="input-group">
+                                <span class="input-group-addon">Rs.</span>
+                                @Html.TextBoxFor(m => m.MedicineCharges, new { @class = "form-control calc-input", type = "number", min = "0", step = "10" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.OtherCharges, new { @class = "control-label" })
+                            <div class="input-group">
+                                <span class="input-group-addon">Rs.</span>
+                                @Html.TextBoxFor(m => m.OtherCharges, new { @class = "form-control calc-input", type = "number", min = "0", step = "10" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.Discount, new { @class = "control-label" })
+                            <div class="input-group">
+                                <span class="input-group-addon">Rs.</span>
+                                @Html.TextBoxFor(m => m.Discount, new { @class = "form-control calc-input", type = "number", min = "0", step = "10" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.PaidAmount, new { @class = "control-label" })
+                            <div class="input-group">
+                                <span class="input-group-addon">Rs.</span>
+                                @Html.TextBoxFor(m => m.PaidAmount, new { @class = "form-control calc-input", type = "number", min = "0", step = "10" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Notes, new { @class = "control-label" })
+                    @Html.TextAreaFor(m => m.Notes, 2, 0, new { @class = "form-control", placeholder = "Notes about this bill..." })
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Live Calculation -->
+        <div class="col-md-4">
+            <div class="card-box" style="position:sticky;top:15px">
+                <div class="card-title"><i class="fa fa-calculator"></i> Bill Summary</div>
+                <table class="table table-bordered" style="font-size:13px">
+                    <tr><td>Consultation Fee</td><td class="text-right" id="s-consult">0</td></tr>
+                    <tr><td>Test Charges</td><td class="text-right" id="s-test">0</td></tr>
+                    <tr><td>Medicine Charges</td><td class="text-right" id="s-med">0</td></tr>
+                    <tr><td>Other Charges</td><td class="text-right" id="s-other">0</td></tr>
+                    <tr><td class="text-danger">Discount (−)</td><td class="text-right text-danger" id="s-discount">0</td></tr>
+                    <tr style="background:#eaf4fb;font-weight:700;font-size:15px">
+                        <td>Total Amount</td>
+                        <td class="text-right" id="s-total" style="color:#2980b9">Rs. 0</td>
+                    </tr>
+                    <tr><td class="text-success">Paid Amount</td><td class="text-right text-success" id="s-paid">0</td></tr>
+                    <tr style="font-weight:700">
+                        <td>Remaining</td>
+                        <td class="text-right" id="s-remaining" style="color:#e74c3c">Rs. 0</td>
+                    </tr>
+                </table>
+
+                <div id="statusBadge" style="text-align:center;padding:10px;background:#fef3cd;border-radius:6px;font-size:14px;font-weight:700;color:#856404">
+                    <i class="fa fa-clock-o"></i> PENDING
+                </div>
+
+                <hr />
+                <button type="submit" class="btn btn-primary btn-lg btn-block">
+                    <i class="fa fa-save"></i> Save Bill
+                </button>
+                <a href="@Url.Action("Index")" class="btn btn-default btn-block" style="margin-top:8px">
+                    <i class="fa fa-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+function fmt(n) { return "Rs. " + parseInt(n).toLocaleString(); }
+
+function recalc() {
+    var consult  = parseFloat(document.getElementById('ConsultationFee').value)||0;
+    var test     = parseFloat(document.getElementById('TestCharges').value)||0;
+    var med      = parseFloat(document.getElementById('MedicineCharges').value)||0;
+    var other    = parseFloat(document.getElementById('OtherCharges').value)||0;
+    var discount = parseFloat(document.getElementById('Discount').value)||0;
+    var paid     = parseFloat(document.getElementById('PaidAmount').value)||0;
+
+    var total     = consult + test + med + other - discount;
+    var remaining = total - paid;
+
+    document.getElementById('s-consult').textContent   = fmt(consult);
+    document.getElementById('s-test').textContent      = fmt(test);
+    document.getElementById('s-med').textContent       = fmt(med);
+    document.getElementById('s-other').textContent     = fmt(other);
+    document.getElementById('s-discount').textContent  = fmt(discount);
+    document.getElementById('s-total').textContent     = fmt(total);
+    document.getElementById('s-paid').textContent      = fmt(paid);
+    document.getElementById('s-remaining').textContent = fmt(remaining < 0 ? 0 : remaining);
+
+    var badge = document.getElementById('statusBadge');
+    if (paid <= 0) {
+        badge.style.background = '#fde8e8'; badge.style.color = '#c0392b';
+        badge.innerHTML = '<i class="fa fa-times-circle"></i> PENDING';
+    } else if (paid >= total && total > 0) {
+        badge.style.background = '#d4edda'; badge.style.color = '#155724';
+        badge.innerHTML = '<i class="fa fa-check-circle"></i> PAID';
+    } else {
+        badge.style.background = '#fef3cd'; badge.style.color = '#856404';
+        badge.innerHTML = '<i class="fa fa-adjust"></i> PARTIAL';
+    }
+}
+document.querySelectorAll('.calc-input').forEach(function(el) {
+    el.addEventListener('input', recalc);
+});
+window.onload = recalc;
+    </script>
+}
